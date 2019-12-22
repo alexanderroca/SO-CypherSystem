@@ -24,14 +24,18 @@
 #define CMD_SHOW_AUDIOS "AUDIOS"
 #define CMD_SHOW_CONNECTIONS "CONNECTIONS"
 #define ERR_UNKNOWNCMD "Error, unknown command.\n"
-#define ERR_2FEWARGS "Error, too few arguments provided to execute command.\n"
-#define ERR_2MANYARGS "Error, too many arguments provided for command.\n"
+#define ERR_2FEWARGS "Error, too few arguments or wrong argument order provided to execute command.\n"
+#define ERR_2MANYARGS "Error, too many arguments or wrong argument order provided to execute command.\n"
 #define ERR_PORT "Error, invalid port value.\n"
 #define ERR_MESSAGE "Error, no message found (specified by using \" \")\n"
 #define ERR_ORDER "Error, wrong argment order.\n"
 #define ERR_NOAUDIO "Error, no audio file extension found in audio file parameter. Audio file must not contain spaces!\n"
+#define ERR_NOSPEACHMARKS "Error, message must end with speachmarks.\n"
 
-#define FILE_NOT_FOUND_ERR "Error, invalid path"
+//defines for moin.c
+#define FILE_NOT_FOUND_ERR "Error, invalid path\n"
+#define ERR_ARGUMENTS "ERROR, invalid arguments\n"
+#define STARTUP "Starting Trinity...\n"
 
 //defines for command.c
 #define NUM_CONNECTIONS "Connections availables: %d\n"

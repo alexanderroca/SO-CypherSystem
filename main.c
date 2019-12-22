@@ -1,3 +1,13 @@
+/******************************************************************************
+* SO-CypherSystem
+*
+* Authors:
+* Alexander Roca Myroshnichenko
+* <alexander.roca@students.salle.url.edu>
+*
+* Victor Blasco Ortuño
+* <victor.blasco@students.salle.url.edu>
+******************************************************************************/
 #include <stdio.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -9,6 +19,7 @@
 int main(int argc, char* argv[]) {
 	configurationData cd;
 	char * user_input;
+	//char buffer[255];
 
 	if (argc == 2) {
 
@@ -19,13 +30,22 @@ int main(int argc, char* argv[]) {
 
 	} //if
 	else {
-		write(1, "ERROR, invalid arguments\n", strlen("ERROR, invalid arguments\n"));
+		write(1, ERR_ARGUMENTS, strlen(ERR_ARGUMENTS));
 		return EXIT_FAILURE;
 	} //else
 
+	write(1, STARTUP, strlen(STARTUP));
+
+	cd.userName[strlen(cd.userName) - 1] = '\0';
+
 	while (1) {
 
+		write(1, "$", 1);
+		write(1, cd.userName, strlen(cd.userName));
+		write(1, ":", 1);
+
 		user_input = readUntil(0, '\n');
+
 		if (strlen(user_input)) {
 			if (checkCommand(user_input, cd)){
 				break;

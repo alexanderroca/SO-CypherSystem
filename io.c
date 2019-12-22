@@ -246,6 +246,7 @@ void checkCMDSay(char **ptr, int c){
 	char buffer_aux[100] = " ";//KILL ME
 
 	buffer = (char*)malloc(sizeof(char));
+	user = (char*)malloc(sizeof(char));
 
 	//comprovem que el nombre d'arguments sigui suficient
 	if (c < 3) {
@@ -253,46 +254,55 @@ void checkCMDSay(char **ptr, int c){
 		write(1, ERR_2FEWARGS, strlen(ERR_2FEWARGS));
 		ok = 0;
 	}else{
-
-		i = 2;
-		user = ptr[1];
-
-		//recorrem totes les paraules fins trobar la que inicia el text o ens quedem sense
-		while (ptr[i][0] != '"' && i < c) {
-
-			buffer = (char*)realloc(buffer, sizeof(char) * (strlen(ptr[i]) + 1));
-			sprintf(buffer, " %s", ptr[i]);
-			strcat(user, buffer);
-			i++;
-		}
-
-		//comprovem que l'usuari haigi posat text (entre " ")
-		if (ptr[i][0] != '"') {
-
+		//cas que s'ntrodueixi text abans que el no d'usuari
+		if (ptr[1][0] == '"') {
 			write(1, ERR_2FEWARGS, strlen(ERR_2FEWARGS));
 			ok = 0;
 		}else{
+			i = 2;
+			user = (char*)realloc(user, sizeof(char) * (strlen(ptr[1])));
+			strcpy(user, ptr[1]);
 
-			message = ptr[i];
-			i++;
+			//recorrem totes les paraules fins trobar la que inicia el text o ens quedem sense
+			while (i < c && ptr[i][0] != '"') {
 
-			while (i < c) {
-
-				//comprovem que no hi haigi mes arguments dels necesaris
-				if(message[strlen(message) - 1] == '"'){
-					write(1, ERR_2MANYARGS, strlen(ERR_2MANYARGS));
-					ok = 0;
-				}
-
-				buffer = (char*)realloc(buffer, sizeof(char) * (strlen(ptr[i]) + 1));
-				sprintf(buffer, " %s", ptr[i]);
-				strcat(message, buffer);
+				user = (char*)realloc(user, sizeof(char) * (strlen(user) + strlen(ptr[i]) + 1));
+				sprintf(user, "%s %s", user, ptr[i]);
 				i++;
-			}//while
+			}
+
+			//comprovem que l'usuari haigi posat text (entre " ")
+			if (i == c) {
+
+				write(1, ERR_2FEWARGS, strlen(ERR_2FEWARGS));
+				ok = 0;
+			}else{
+
+				message = ptr[i];
+				i++;
+
+				while (i < c) {
+
+					//comprovem que no hi haigi mes arguments dels necesaris
+					if(ok && message[strlen(message) - 1] == '"'){
+						write(1, ERR_2MANYARGS, strlen(ERR_2MANYARGS));
+						ok = 0;
+					}
+
+					buffer = (char*)realloc(buffer, sizeof(char) * (strlen(ptr[i]) + 1));
+					sprintf(buffer, " %s", ptr[i]);
+					strcat(message, buffer);
+					i++;
+				}//while
+
+				//Comprovem que el missatge acaba en "
+				if (ok && message[strlen(message) - 1] != '"') {
+					write(1, ERR_NOSPEACHMARKS, strlen(ERR_NOSPEACHMARKS));
+					ok = 0;
+				}//if
+			}//else
 		}//else
 	}//else
-
-	free(buffer);
 
 	if (ok) {
 
@@ -300,6 +310,9 @@ void checkCMDSay(char **ptr, int c){
 		write(1, buffer_aux, strlen(buffer_aux));//KILL ME
 		//say(user, message);//TODO: implement function
 	}//if
+
+	free(buffer);
+	free(user);
 }//func
 
 /******************************************************************************
@@ -323,10 +336,11 @@ void checkCMDBroadcast(char **ptr, int c) {
 
 	ok = 1;
 	buffer = (char*)malloc(sizeof(char));
-	if (c < 2) {
 
+	if (c < 2) {
 		ok = 0;
 		write(1, ERR_2FEWARGS, strlen(ERR_2FEWARGS));
+
 	}else{
 
 		if (ptr[1][0] == '"') {
@@ -353,6 +367,11 @@ void checkCMDBroadcast(char **ptr, int c) {
 			write(1, ERR_MESSAGE, strlen(ERR_MESSAGE));
 		}//else
 	}//else
+
+	if (ok && message[strlen(message) - 1] != '"') {
+		write(1, ERR_NOSPEACHMARKS, strlen(ERR_NOSPEACHMARKS));
+		ok = 0;
+	}
 
 	free(buffer);
 
