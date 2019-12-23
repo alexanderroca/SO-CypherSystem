@@ -6,8 +6,14 @@
 #include <sys/stat.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <errno.h>
 
 #include "io.h"
+
+#define PATH "./show_connections_v2.sh"
+#define MIN_PORT "8550"
+#define MAX_PORT "8560"
+#define IP_SCRIPT "127.0.0.1"
 
 void showConnections(connectionAvailable* connectionavailable, int numConnections);
 void connectToPort(uint16_t port);
