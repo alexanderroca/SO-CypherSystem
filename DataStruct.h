@@ -11,6 +11,7 @@
 #include <limits.h>
 #include <ctype.h>
 #include <assert.h>
+#include <sys/wait.h>
 
 //defines for io.c
 #define ENTER_SEP '\n'

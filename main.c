@@ -16,10 +16,23 @@
 
 #include "io.h"
 #include "tcpServer.h"
+<<<<<<< HEAD
 
 int main(int argc, char* argv[]) {
     configurationData cd;
     //char buffer[255];
+=======
+#include "command.h"//TO DEBUG
+
+int main(int argc, char* argv[]) {
+
+	write(1, "Trying to connect", strlen("Trying to connect"));
+	connectToPort(8850, "127.0.0.1");
+/*
+	configurationData cd;
+	char * user_input;
+	//char buffer[255];
+>>>>>>> aa27be5e697a01d63ad3d9bfa5b026200e7fc99c
 
     if (argc == 2) {
 
@@ -42,5 +55,23 @@ int main(int argc, char* argv[]) {
 
     serverClient(cd);
 
+<<<<<<< HEAD
     return EXIT_SUCCESS;
+=======
+		user_input = readUntil(0, '\n');
+
+		if (strlen(user_input)) {
+			if (checkCommand(user_input, cd)){
+				break;
+			}//if
+		}else{
+
+			write(1, ERR_UNKNOWNCMD, strlen(ERR_UNKNOWNCMD));
+		}//else
+	}//while
+
+	serverClient(cd);
+
+	return EXIT_SUCCESS;*/
+>>>>>>> aa27be5e697a01d63ad3d9bfa5b026200e7fc99c
 }

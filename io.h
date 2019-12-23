@@ -2,7 +2,7 @@
 #define  _IO_H
 
 #include "DataStruct.h"
-//#include "command.h"
+#include "command.h"
 
 //checks a file of a given file descriptor for the end of file character
 int checkEOF(int fd);

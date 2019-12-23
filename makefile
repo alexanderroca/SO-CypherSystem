@@ -6,11 +6,17 @@ main.o: main.c io.h
 io.o: io.c io.h DataStruct.h
 	gcc io.c -c -Wall -Wextra
 
-main: main.o io.o
-	gcc main.o io.o -o Practica -Wall -Wextra
+command.o: command.c command.h io.h
+	gcc command.c -c -Wall -Wextra
+
+tcpServer.o: tcpServer.c tcpServer.h command.h
+	gcc tcpServer.c -c -Wall -Wextra
+
+main: main.o io.o command.o tcpServer.o
+	gcc main.o io.o command.o tcpServer.o -o Practica -lpthread -Wall -Wextra
 
 clean:
-	rm *.o main.
+	rm *.o
 
 tar:
 	cd .. && tar -cvf Practica_F1.tar F1/

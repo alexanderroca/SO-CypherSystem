@@ -125,6 +125,8 @@ int checkEOF(int fd) {
 ******************************************************************************/
 int  checkCommand(char * user_input, configurationData cd) {
 
+	printf("Inside checkCommand\n");
+
 	char *aux, **ptr;
 	int c, exit;
 
@@ -214,10 +216,9 @@ void checkCMDConnect(char **ptr, int c) {
 	}else{
 
 		if (atoi(ptr[1]) != 0) {
-
 			sprintf(buffer, "connecting to %d\n", atoi(ptr[1]));//KILL ME
 			write(1, buffer, strlen(buffer));//KILL ME
-			//connectToPort(atoi(ptr[1]));//TODO: implement function
+			connectToPort(atoi(ptr[1]), "127.0.0.1"); //TODO: implement function
 		}else{
 			write(1, ERR_PORT, strlen(ERR_PORT));
 		}//else
@@ -514,7 +515,7 @@ void checkCMDShow(char **ptr, int c, configurationData cd){
 
 				sprintf(buffer_aux, "Showing connections of %d connections\n", cd.numConnections);//KILL ME
 				write(1, buffer_aux, strlen(buffer_aux));//KILL ME
-				//showConnections(cd.connectionAvailable, cd.numConnections); //TODO: implement function
+				showConnections();
 			}//else
 		}else{
 
