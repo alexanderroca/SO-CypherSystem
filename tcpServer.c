@@ -1,11 +1,19 @@
 #include "tcpServer.h"
 
+void initializationClients(Clients clients){
+  clients.num_sockets = 0;
+  clients.sockets = malloc(sizeof(int));
+}
+
 //Creem dos threads
 int serverClient(configurationData cd){
 
+  Clients clients;
   pthread_t t_client, t_server;
   int estat = 0;
   //semaphore sem_clientServer;
+
+  initializationClients(clients);
 
   write(1, WELCOME, strlen(WELCOME));
 
@@ -71,7 +79,9 @@ void *userAsClient(void *arg){
 //Usuari com a servidor
 void *userAsServer(void *arg){
 
-  write(1, "Soc server\n", strlen("Soc server\n"));
+  Clients clients;
+
+  write(1, "Soc server\n", strlen("Soc server\n")); //KILL ME
 
   //semaphore sem_clientServer;
   int sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -95,9 +105,32 @@ void *userAsServer(void *arg){
   //Falta incloure semafors, zona critica a l'hora d'escoltar com a server a transmetre com a client
   //while(1){
     //SEM_wait(&sem_clientServer);
-    listen(sockfd, 1);
+    listen(sockfd, 5);
     //SEM_signal(&sem_clientServer);
 //  } //while
+
+  while(1){
+    struct sockaddr_in c_addr;
+    socklen_t c_len = sizeof(c_addr);
+
+    //Al cridar accept hem de fer el mateix cast que per bind,
+    //i pel mateix motiu
+    int newsock = accept(sockfd, (void *) &c_addr, &c_len);
+
+    if(newsock < 0){
+      perror("accept");
+      exit(EXIT_FAILURE);
+    } //if
+    else{
+      clients.sockets[clients.num_sockets] = newsock;
+      printf("File descriptor socket: %d ", clients.sockets[clients.num_sockets]);
+      clients.num_sockets++;
+      printf("- NUM Clients connectats: %d\n", clients.num_sockets);
+      clients.sockets = (int*)realloc(clients.sockets, sizeof(int) * (clients.num_sockets + 1));
+    } //else
+
+
+  }
 
   return (void *) 0;
 }
