@@ -218,7 +218,7 @@ void checkCMDConnect(char **ptr, int c) {
 		if (atoi(ptr[1]) != 0) {
 			sprintf(buffer, "connecting to %d\n", atoi(ptr[1]));//KILL ME
 			write(1, buffer, strlen(buffer));//KILL ME
-			connectToPort(atoi(ptr[1]), "127.0.0.1"); //TODO: implement function
+			connectToPort(atoi(ptr[1]), "127.0.0.1");	//BLASCO -> TRACTA STRING EL PORT QUE ESCRIU CLIENT
 		}else{
 			write(1, ERR_PORT, strlen(ERR_PORT));
 		}//else

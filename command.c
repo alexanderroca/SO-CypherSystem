@@ -26,8 +26,10 @@ void showConnections(){
 
 void connectToPort(uint16_t portToConnect, char* ipToConnect) {
 
+  printf("PORT_MIN: %d\n", atoi(MIN_PORT));
+
   //Comprovem la validesa del port
-  if(portToConnect < atoi(MIN_PORT) || portToConnect > atoi(MAX_PORT)){
+  if(portToConnect < atoi(MIN_PORT) && portToConnect > atoi(MAX_PORT)){
     fprintf(stderr, "Error: %d es un port invalid\n", portToConnect);
     exit(EXIT_FAILURE);
   } //if
@@ -70,10 +72,12 @@ void connectToPort(uint16_t portToConnect, char* ipToConnect) {
     exit(EXIT_FAILURE);
   } //if
 
-  char msg[] = "Hola!";
+  write(1, "Connecting...\n", strlen("Connecting...\n"));
+
+  /*char msg[] = "Hola!";
 
    //Cridem sizeof i no strlen perque msg es un array
    //cridar strlen tambe seria correcte
-   write(sockfd, msg, sizeof(msg));
+   write(sockfd, msg, sizeof(msg));*/
 
 }

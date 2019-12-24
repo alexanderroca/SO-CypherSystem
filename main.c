@@ -38,8 +38,6 @@ int main(int argc, char* argv[]) {
 
     cd.userName[strlen(cd.userName) - 1] = '\0';
 
-    printf("entering server client \n"); //KILL ME
-
     serverClient(cd);
 
     return EXIT_SUCCESS;
