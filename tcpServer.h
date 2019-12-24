@@ -14,12 +14,17 @@
 #define WELCOME "Starting trinity...\n"
 #define USERCLIENT "$%s: "
 
-static typedef struct{
+typedef struct{
   int num_sockets;
   int* sockets;
-} Clients;
+}Clients;
 
-void initializationClients(Clients clients);
+typedef struct{
+  configurationData cd;
+  Clients clients;
+}ThreadServer;
+
+Clients initializationClients();
 int serverClient(configurationData cd);
 void *userAsClient(void *arg);
 void *userAsServer(void *arg);

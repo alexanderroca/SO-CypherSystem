@@ -1,8 +1,12 @@
 #include "tcpServer.h"
 
-void initializationClients(Clients clients){
+Clients initializationClients(){
+
+  Clients clients;
   clients.num_sockets = 0;
   clients.sockets = malloc(sizeof(int));
+
+  return clients;
 }
 
 //Creem dos threads
@@ -11,11 +15,15 @@ int serverClient(configurationData cd){
   Clients clients;
   pthread_t t_client, t_server;
   int estat = 0;
+  ThreadServer ts;
   //semaphore sem_clientServer;
 
-  initializationClients(clients);
+  clients = initializationClients();
 
   write(1, WELCOME, strlen(WELCOME));
+
+  ts.clients = clients;
+  ts.cd = cd;
 
   //SEM_constructor_with_name(&sem_clientServer, ftok("tcpServer.c", atoi("clientServer")));
 
@@ -27,7 +35,7 @@ int serverClient(configurationData cd){
     return -1;
   }  //if
 
-  estat = pthread_create(&t_server, NULL, userAsServer, NULL);
+  estat = pthread_create(&t_server, NULL, userAsServer, &ts);
   if(estat != 0){
     perror("pthread_create");
     return -1;
@@ -79,9 +87,10 @@ void *userAsClient(void *arg){
 //Usuari com a servidor
 void *userAsServer(void *arg){
 
-  Clients clients;
-
+  ThreadServer *ts = (ThreadServer *) arg;
   write(1, "Soc server\n", strlen("Soc server\n")); //KILL ME
+
+  printf("PORT: %d\n", ts->cd.port);//KILL ME
 
   //semaphore sem_clientServer;
   int sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -92,7 +101,7 @@ void *userAsServer(void *arg){
   struct sockaddr_in s_addr;
   memset(&s_addr, 0, sizeof(s_addr));
   s_addr.sin_family = AF_INET;
-  s_addr.sin_port = htons(PORT);
+  s_addr.sin_port = htons(ts->cd.port);
   s_addr.sin_addr.s_addr = INADDR_ANY;
 
   if(bind(sockfd, (void *) &s_addr, sizeof(s_addr)) < 0){
@@ -122,11 +131,11 @@ void *userAsServer(void *arg){
       exit(EXIT_FAILURE);
     } //if
     else{
-      clients.sockets[clients.num_sockets] = newsock;
-      printf("File descriptor socket: %d ", clients.sockets[clients.num_sockets]);
-      clients.num_sockets++;
-      printf("- NUM Clients connectats: %d\n", clients.num_sockets);
-      clients.sockets = (int*)realloc(clients.sockets, sizeof(int) * (clients.num_sockets + 1));
+      ts->clients.sockets[ts->clients.num_sockets] = newsock;
+      printf("File descriptor socket: %d ", ts->clients.sockets[ts->clients.num_sockets]);
+      ts->clients.num_sockets++;
+      printf("- NUM Clients connectats: %d\n", ts->clients.num_sockets);
+      ts->clients.sockets = (int*)realloc(ts->clients.sockets, sizeof(int) * (ts->clients.num_sockets + 1));
     } //else
 
 
