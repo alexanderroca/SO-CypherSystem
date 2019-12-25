@@ -48,6 +48,7 @@ typedef struct {
 }connectionAvailable;
 
 typedef struct {
+	int socket;
 	char* userName;
 	char* audioDirectory;
 	char* ip;

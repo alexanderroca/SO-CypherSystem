@@ -4,7 +4,7 @@ Clients initializationClients(){
 
   Clients clients;
   clients.num_sockets = 0;
-  clients.sockets = malloc(sizeof(int));
+  clients.sockets = malloc(sizeof(configurationData));
 
   return clients;
 }
@@ -40,9 +40,6 @@ int serverClient(configurationData cd){
     perror("pthread_create");
     return -1;
   }  //if
-
-  pthread_join(t_client, NULL);
-  pthread_join(t_server, NULL);
 
   //SEM_destructor(&sem_clientServer);
 
@@ -84,8 +81,21 @@ void *userAsClient(void *arg){
   return NULL;
 }
 
+//Servidor dedicat per client connectat al serverClient
+void *dedicatedServer(void *arg){
+
+  configurationData *cd = (configurationData *) arg;
+
+  write(1, "Soc server dedicat\n", strlen("Soc server dedicat\n")); //KILL ME
+  printf("Num socket: %d\n", cd->socket); //KILL ME
+
+  return NULL;
+}
+
 //Usuari com a servidor
 void *userAsServer(void *arg){
+
+  pthread_t t_dedicatedServer;
 
   ThreadServer *ts = (ThreadServer *) arg;
   write(1, "Soc server\n", strlen("Soc server\n")); //KILL ME
@@ -131,11 +141,14 @@ void *userAsServer(void *arg){
       exit(EXIT_FAILURE);
     } //if
     else{
-      ts->clients.sockets[ts->clients.num_sockets] = newsock;
-      printf("File descriptor socket: %d ", ts->clients.sockets[ts->clients.num_sockets]);
+      //Posar semafor
+      ts->clients.sockets[ts->clients.num_sockets].socket = newsock;
+      printf("File descriptor socket: %d ", ts->clients.sockets[ts->clients.num_sockets].socket);
       ts->clients.num_sockets++;
       printf("- NUM Clients connectats: %d\n", ts->clients.num_sockets);
-      ts->clients.sockets = (int*)realloc(ts->clients.sockets, sizeof(int) * (ts->clients.num_sockets + 1));
+      ts->clients.sockets = (configurationData*)realloc(ts->clients.sockets, sizeof(int) * (ts->clients.num_sockets + 1));
+      pthread_create(&t_dedicatedServer, NULL, dedicatedServer, &ts->clients.sockets[ts->clients.num_sockets - 1]); //Creacio del thread del nou client, cal passar ts al thread
+      //Fins aqui
     } //else
 
 

@@ -16,7 +16,7 @@
 
 typedef struct{
   int num_sockets;
-  int* sockets;
+  configurationData* sockets;
 }Clients;
 
 typedef struct{
