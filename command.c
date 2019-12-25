@@ -26,7 +26,9 @@ void showConnections(){
 
 void connectToPort(uint16_t portToConnect, char* ipToConnect) {
 
-  printf("PORT_MIN: %d\n", atoi(MIN_PORT));
+  configurationData cd;
+  char buffer[100] = " ";
+  int num;
 
   //Comprovem la validesa del port
   if(portToConnect < atoi(MIN_PORT) && portToConnect > atoi(MAX_PORT)){
@@ -73,11 +75,8 @@ void connectToPort(uint16_t portToConnect, char* ipToConnect) {
   } //if
 
   write(1, "Connecting...\n", strlen("Connecting...\n"));
-
-  /*char msg[] = "Hola!";
-
-   //Cridem sizeof i no strlen perque msg es un array
-   //cridar strlen tambe seria correcte
-   write(sockfd, msg, sizeof(msg));*/
-
+  num = read(4, &cd, sizeof(configurationData)); //Canviar el primer parametre pel num_socket corresponent
+  printf("Num bytes llegits: %d\n", num);
+  sprintf(buffer, "%d connected: %s\n", portToConnect, cd.userName);
+  write(1, buffer, strlen(buffer));
 }

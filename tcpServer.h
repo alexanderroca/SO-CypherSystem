@@ -5,6 +5,8 @@
 #include <netinet/in.h>
 #include <pthread.h>
 #include <sys/shm.h>
+#include <sys/stat.h>
+#include <sys/ipc.h>
 //#include "semaphore_v2.h"
 
 #include "command.h"

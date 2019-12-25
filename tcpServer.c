@@ -15,7 +15,7 @@ int serverClient(configurationData cd){
   Clients clients;
   pthread_t t_client, t_server;
   int estat = 0;
-  ThreadServer ts;
+  ThreadServer ts;  //Posar-ho en una memoria compartida
   //semaphore sem_clientServer;
 
   clients = initializationClients();
@@ -41,6 +41,8 @@ int serverClient(configurationData cd){
     return -1;
   }  //if
 
+  pthread_join(t_client, NULL);
+  pthread_join(t_server, NULL);
   //SEM_destructor(&sem_clientServer);
 
   return 0;
@@ -88,6 +90,8 @@ void *dedicatedServer(void *arg){
 
   write(1, "Soc server dedicat\n", strlen("Soc server dedicat\n")); //KILL ME
   printf("Num socket: %d\n", cd->socket); //KILL ME
+
+
 
   return NULL;
 }
@@ -147,6 +151,8 @@ void *userAsServer(void *arg){
       ts->clients.num_sockets++;
       printf("- NUM Clients connectats: %d\n", ts->clients.num_sockets);
       ts->clients.sockets = (configurationData*)realloc(ts->clients.sockets, sizeof(int) * (ts->clients.num_sockets + 1));
+      printf("Envio reply de confirmacio de connexio del socket %d\n", newsock);
+      write(newsock, &(ts->cd), sizeof(configurationData));  //Reply de connexio
       pthread_create(&t_dedicatedServer, NULL, dedicatedServer, &ts->clients.sockets[ts->clients.num_sockets - 1]); //Creacio del thread del nou client, cal passar ts al thread
       //Fins aqui
     } //else
