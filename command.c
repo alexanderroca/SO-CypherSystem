@@ -80,3 +80,19 @@ void connectToPort(uint16_t portToConnect, char* ipToConnect) {
   sprintf(buffer, "%d connected: %s\n", portToConnect, cd.userName);
   write(1, buffer, strlen(buffer));
 }
+
+void broadcast(char* msg, ThreadServer* ts){
+  int i;
+
+  //semafor
+  for(i = 0; i < ts->clients.num_sockets; i++){
+
+    if(write(ts->clients->sockets.socket, msg, strlen(msg)) < 0){
+
+      perror("sending failure");
+      continue;
+    } //if
+  } //for
+  //fi_ssemafor
+
+}
