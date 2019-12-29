@@ -87,6 +87,81 @@ int readConfigurationFile(char* path, configurationData* cd) {
 	} //else
 }
 
+//COMMAND DOWNLOAD AUDIO RECIEVER
+int getAudioFile(int socket){
+
+	//Cal rebre el nom del file primer abans de transferir les dades
+
+	char buffer[255];
+	char recvBuff[1024];
+	int bytesReceived = 0;
+	int fd = open(path, O_CREAT);
+	long double sz=1;
+
+  memset(recvBuff, '0', sizeof(recvBuff));
+
+	if(fd < 0){
+		write(1, ERROR_OPENING_FILE, strlen(ERROR_OPENING_FILE));
+	}	//if
+	else{
+		while((bytesReceived = read(sockfd, recvBuff, 1024)) > 0){
+			sz++;
+			gotoxy(0,4);
+			sprintf(buffer, RECIEVING_DATA, (sz/1024));
+			write(1, buffer, strlen(buffer));
+			fflush(stdout);
+			fwrite(recvBuff, 1, bytesReceived, socket);
+		}	//while
+
+		if(bytesReceived < 0){
+				//Path es el nom del file que cal rebre al principi
+				/*sprintf(buffer, TRANSFER_FAILURE, path);
+				write(1, buffer, strlen(buffer));*/
+    }	//if
+		else{
+			write(1, TRANSFER_SUCCES_ONCLIENT. strlen(TRANSFER_SUCCES_ONCLIENT));
+		}	//else
+	}	//else
+}
+
+//COMMAND DOWNLOAD AUDIO TRANSFER
+int sendAudioFile(char* path, int socket){
+
+	char buffer[255];
+	int fd = open(path, O_RDONLY);
+
+	if(fd < 0){
+		write(1, ERROR_OPENING_FILE, strlen(ERROR_OPENING_FILE));
+	}	//if
+	else{
+		while(1){
+
+			/* First read file in chunks of 256 bytes */
+			unsigned char buff[1024]={0};
+			int nread = fread(buff,1,1024,fp);
+
+			/* If read was success, send data. */
+			if(nread > 0){
+					//printf("Sending \n");
+					write(connfd, buff, nread);
+			}	//if
+
+			if (nread < 1024){
+					if (feof(fp)){
+						sprintf(buffer, TRANSFER_SUCCESS, socket);
+						write(1, buffer, strlen(buffer));
+					}	//if
+					if (checkEOF(fd) == 1){
+						sprintf(buffer, TRANSFER_FAILURE, path);
+						write(1, buffer, strlen(buffer));
+					}	//if
+					break;
+			}	//if
+
+		}	//while
+	}	//else
+}
+
 /******************************************************************************
 * <Description>
 * checkEOF searches if the end of file for a given file descriptor has been

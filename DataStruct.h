@@ -32,8 +32,14 @@
 #define ERR_ORDER "Error, wrong argment order.\n"
 #define ERR_NOAUDIO "Error, no audio file extension found in audio file parameter. Audio file must not contain spaces!\n"
 #define ERR_NOSPEACHMARKS "Error, message must end with speachmarks.\n"
+#define TRANSFER_SUCCESS "File transfer completed for id: %d\n"
+#define TRANSFER_FAILURE "Error reading %s\n"
+#define RECIEVING_FILE "Receiving file...\n"
+#define ERROR_OPENING_FILE "Error opening file\n"
+#define RECIEVING_DATA "Received: %llf Mb"
+#define TRANSFER_SUCCES_ONCLIENT "File OK....Completed\n"
 
-//defines for moin.c
+//defines for main.c
 #define FILE_NOT_FOUND_ERR "Error, invalid path\n"
 #define ERR_ARGUMENTS "ERROR, invalid arguments\n"
 #define STARTUP "Starting Trinity...\n"
