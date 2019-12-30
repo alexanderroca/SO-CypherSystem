@@ -30,6 +30,24 @@ char* readUntil(int fd, char end) {
 	return string;
 }
 
+char* readUntilNum(int fd, int num) {
+	int i = 0;
+	char c = '\0';
+	char* string = (char*)malloc(sizeof(char));
+
+	while (i < num) {
+		read(fd, &c, sizeof(char));
+		if (i < num) {
+			string = (char*)realloc(string, sizeof(char) * (i + 2));
+			string[i] = c;
+		}
+		i++;
+	}
+
+	string[i - 1] = '\0';
+	return string;
+}
+
 /******************************************************************************
 * <Description>
 * readConfigurationFile reads the configuration.txt file based on the files'
@@ -95,6 +113,11 @@ int getAudioFile(int socket){
 	char buffer[255];
 	char recvBuff[1024];
 	int bytesReceived = 0;
+
+	//Debbugging
+	char path[255] = "Audio1/Stuck_In_Nostalgia.mp3";
+	//FiDebbugging
+
 	int fd = open(path, O_CREAT);
 	long double sz=1;
 
@@ -104,13 +127,14 @@ int getAudioFile(int socket){
 		write(1, ERROR_OPENING_FILE, strlen(ERROR_OPENING_FILE));
 	}	//if
 	else{
-		while((bytesReceived = read(sockfd, recvBuff, 1024)) > 0){
+		while((bytesReceived = read(socket, recvBuff, 1024)) > 0){
 			sz++;
-			gotoxy(0,4);
+			//gotoxy(0,4);
 			sprintf(buffer, RECIEVING_DATA, (sz/1024));
 			write(1, buffer, strlen(buffer));
 			fflush(stdout);
-			fwrite(recvBuff, 1, bytesReceived, socket);
+			write(fd, recvBuff, strlen(recvBuff));
+			//fwrite(recvBuff, 1, bytesReceived, socket);
 		}	//while
 
 		if(bytesReceived < 0){
@@ -119,9 +143,11 @@ int getAudioFile(int socket){
 				write(1, buffer, strlen(buffer));*/
     }	//if
 		else{
-			write(1, TRANSFER_SUCCES_ONCLIENT. strlen(TRANSFER_SUCCES_ONCLIENT));
+			write(1, TRANSFER_SUCCES_ONCLIENT, strlen(TRANSFER_SUCCES_ONCLIENT));
 		}	//else
 	}	//else
+
+	return 0;
 }
 
 //COMMAND DOWNLOAD AUDIO TRANSFER
@@ -137,17 +163,21 @@ int sendAudioFile(char* path, int socket){
 		while(1){
 
 			/* First read file in chunks of 256 bytes */
-			unsigned char buff[1024]={0};
-			int nread = fread(buff,1,1024,fp);
+			char* buff;
+
+			buff = malloc(sizeof(char));
+
+			//int nread = fread(buff, 1, 1024, fd);
+			buff = readUntilNum(fd, 1024);
 
 			/* If read was success, send data. */
-			if(nread > 0){
+			if(strlen(buff) > 0){
 					//printf("Sending \n");
-					write(connfd, buff, nread);
+					write(socket, buff, strlen(buff));
 			}	//if
 
-			if (nread < 1024){
-					if (feof(fp)){
+			if (strlen(buff) < 1024){
+					if (checkEOF(fd)){
 						sprintf(buffer, TRANSFER_SUCCESS, socket);
 						write(1, buffer, strlen(buffer));
 					}	//if
@@ -160,6 +190,8 @@ int sendAudioFile(char* path, int socket){
 
 		}	//while
 	}	//else
+
+	return 0;
 }
 
 /******************************************************************************
@@ -522,6 +554,7 @@ void checkCMDDownload(char **ptr, int c) {
 		sprintf(buffer_aux, "downloading audio file %s from user %s\n", audio_file, user);//KILL ME
 		write(1, buffer_aux, strlen(buffer_aux));
 		//download(user, audio_file); //TODO: implement function
+		getAudioFile(4);
 	}
 }//func
 
@@ -551,7 +584,7 @@ int checkCMDExit(int c){
 	}//else
 
 	return exit;
-}//func
+}	//func
 
 /******************************************************************************
 * <Description>

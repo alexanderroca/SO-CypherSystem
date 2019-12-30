@@ -36,7 +36,7 @@
 #define TRANSFER_FAILURE "Error reading %s\n"
 #define RECIEVING_FILE "Receiving file...\n"
 #define ERROR_OPENING_FILE "Error opening file\n"
-#define RECIEVING_DATA "Received: %llf Mb"
+#define RECIEVING_DATA "Received: %Le Mb"
 #define TRANSFER_SUCCES_ONCLIENT "File OK....Completed\n"
 
 //defines for main.c

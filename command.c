@@ -81,7 +81,7 @@ void connectToPort(uint16_t portToConnect, char* ipToConnect) {
   write(1, buffer, strlen(buffer));
 }
 
-void broadcast(char* msg, ThreadServer* ts){
+/*void broadcast(char* msg, ThreadServer* ts){
   int i;
 
   //semafor
@@ -95,4 +95,4 @@ void broadcast(char* msg, ThreadServer* ts){
   } //for
   //fi_ssemafor
 
-}
+}*/

@@ -145,14 +145,15 @@ void *userAsServer(void *arg){
       exit(EXIT_FAILURE);
     } //if
     else{
+      //sendAudioFile("Audio/Stuck_In_Nostalgia.mp3", 4); //Debbugging
       //Posar semafor
       ts->clients.sockets[ts->clients.num_sockets].socket = newsock;
       printf("File descriptor socket: %d ", ts->clients.sockets[ts->clients.num_sockets].socket);
       ts->clients.num_sockets++;
       printf("- NUM Clients connectats: %d\n", ts->clients.num_sockets);
       ts->clients.sockets = (configurationData*)realloc(ts->clients.sockets, sizeof(int) * (ts->clients.num_sockets + 1));
-      printf("Envio reply de confirmacio de connexio del socket %d\n", newsock);
-      write(newsock, &(ts->cd), sizeof(configurationData));  //Reply de connexio
+      /*printf("Envio reply de confirmacio de connexio del socket %d\n", newsock);
+      write(newsock, &(ts->cd), sizeof(configurationData));  //Reply de connexio*/
       pthread_create(&t_dedicatedServer, NULL, dedicatedServer, &ts->clients.sockets[ts->clients.num_sockets - 1]); //Creacio del thread del nou client, cal passar ts al thread
       //Fins aqui
     } //else

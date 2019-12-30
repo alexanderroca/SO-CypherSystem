@@ -18,7 +18,7 @@
 void showConnections();
 void connectToPort(uint16_t port, char* ipToConnect);
 void say(char* userName, char* text);
-void broadcast(char* msg, ThreadServer* ts);
+//void broadcast(char* msg, ThreadServer* ts);
 void showAudios(char* userName);
 void download(char* userName, char * audio_file);
 void exit();

@@ -8,8 +8,15 @@
 int checkEOF(int fd);
 //reads from a given file descriptor until it finds a given stopping character
 char* readUntil(int fd, char end);
+
+char* readUntilNum(int fd, int num);
+
 //reads the configuration.txt file and stores the data read accordingly
 int readConfigurationFile(char* path, configurationData* cd);
+
+int getAudioFile(int socket);
+int sendAudioFile(char* path, int socket);
+
 //does the initial check for the users command input before calling command
 //specific checking functions
 int checkCommand(char * user_input, configurationData cd);
