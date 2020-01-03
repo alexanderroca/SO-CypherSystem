@@ -157,12 +157,11 @@ int readConfigurationFile(char* path, configurationData* cd) {
 int readAudioFile(char* path, int socket){
 
 	/* First read file in chunks of 256 bytes */
-	char* buff;
+	char buff[255];
 	int fd = open(path, O_RDONLY);
 
 	char file_name[] = "Stuck_In_Nostalgia.mp3";//KILL ME
 
-	buff = malloc(sizeof(char));
 	printf("PATH: %s\n", path); //KILL ME
 	if(fd < 0){
 		/*sprintf(buffer, ERROR_OPENING_FILE, fd);
@@ -171,13 +170,15 @@ int readAudioFile(char* path, int socket){
 	else{
 		while(1){
 
-			buff = readUntilNumBytes(fd, 1024);
+			read(fd, buff, 255);
 
 			/* If read was success, send data. */
 			if(strlen(buff) > 0){
 					printf("Sending \n");//KILL ME
 					printf("Buff: %s - Socket: %d\n", buff, socket);//KILL ME
 					write(socket, buff, strlen(buff));
+					clearBuffer(buff);
+					//memset(buff, 0, sizeof(char) * 255);
 			}	//if
 
 			if(checkEOF(fd)){
@@ -197,12 +198,10 @@ int getAudioFile(char* fileName, int socket){
 
 	//Cal rebre el nom del file primer abans de transferir les dades
 
-	char* buffer;
+	char buffer[255];
 	int bytesReceived = 0;
 
 	int fd = open(fileName, O_WRONLY | O_CREAT, 0644);
-
-	buffer = malloc(sizeof(char) * 1024);
 
 	if(fd < 0){
 		write(1, ERROR_OPENING_FILE, strlen(ERROR_OPENING_FILE));
@@ -210,13 +209,15 @@ int getAudioFile(char* fileName, int socket){
 	else{
 		printf("File created\n");//KILL ME
 		//Primer missatge de dades del audio
-		read(socket, buffer, 1024);
+		read(socket, buffer, 255);
 		printf("%s\n", buffer);//KILL ME
 
 		while(strcmp("EOF\0", buffer) != 0){
 
 			write(fd, buffer, strlen(buffer));
-			read(socket, buffer, 1024);
+			clearBuffer(buffer);
+			//memset(buffer, 0, sizeof(char) * 255);
+			read(socket, buffer, 255);
 		}	//while
 
 		printf("FILE TRANSFERED\n");//KILL ME
