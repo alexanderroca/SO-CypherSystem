@@ -160,6 +160,8 @@ int readAudioFile(char* path, int socket){
 	char* buff;
 	int fd = open(path, O_RDONLY);
 
+	char file_name[] = "Stuck_In_Nostalgia.mp3";//KILL ME
+
 	buff = malloc(sizeof(char));
 	printf("PATH: %s\n", path); //KILL ME
 	if(fd < 0){
@@ -167,9 +169,8 @@ int readAudioFile(char* path, int socket){
 		write(1, buffer, strlen(buffer));*/
 	}	//if
 	else{
-		//while(1){
+		while(1){
 
-			//int nread = fread(buff, 1, 1024, fd);
 			buff = readUntilNumBytes(fd, 1024);
 
 			/* If read was success, send data. */
@@ -179,17 +180,16 @@ int readAudioFile(char* path, int socket){
 					write(socket, buff, strlen(buff));
 			}	//if
 
-			if (checkEOF(fd)){
+			if(checkEOF(fd)){
 				printf("END OF FILE\n");//KILL ME
-				//break;
+				write(socket, "EOF\0", strlen("EOF\0"));
+				break;
 			}	//if
-
-
-		//}	//while
-
-		write(socket, "EOF\0", strlen("EOF\0"));
+		}	//while
 	}	//else
 
+	sprintf(buff, MD5SUM_COMMAND, file_name);
+	system("md5sum filename");
 	return 0;
 }
 
@@ -209,24 +209,17 @@ int getAudioFile(char* fileName, int socket){
 	}	//if
 	else{
 		printf("File created\n");//KILL ME
+		//Primer missatge de dades del audio
 		read(socket, buffer, 1024);
 		printf("%s\n", buffer);//KILL ME
-		//while(strcmp("EOF\0", buffer) != 0){
+
+		while(strcmp("EOF\0", buffer) != 0){
 
 			write(fd, buffer, strlen(buffer));
-			//buffer = readUntilNumBytes(socket, 1024);
-		//}	//while
+			read(socket, buffer, 1024);
+		}	//while
 
 		printf("FILE TRANSFERED\n");//KILL ME
-
-		if(bytesReceived < 0){
-				//fileName es el nom del file que cal rebre al principi
-				/*sprintf(buffer, TRANSFER_FAILURE, path);
-				write(1, buffer, strlen(buffer));*/
-    }	//if
-		else{
-			write(1, TRANSFER_SUCCES_ONCLIENT, strlen(TRANSFER_SUCCES_ONCLIENT));
-		}	//else
 	}	//else
 
 	return 0;

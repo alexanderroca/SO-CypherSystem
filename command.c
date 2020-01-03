@@ -1,10 +1,27 @@
 #include "command.h"
 
+int initializationPipes(int fd[2]){
+
+}
+
 void showConnections(){
 
   printf("Tracta forks\n");
 
   pid_t pid;
+
+  //Pipes
+  int fd1[2];
+  int fd2[2];
+
+  if (pipe(fd1)==-1){
+        fprintf(stderr, "Pipe Failed" );
+        return 1;
+  }   //if
+  if (pipe(fd2)==-1){
+      fprintf(stderr, "Pipe Failed" );
+      return 1;
+  } //if
 
   pid = fork();
 
@@ -19,6 +36,7 @@ void showConnections(){
   } //else-if
   else{
     //Proces pare
+    close(fd1[0]);
     wait(NULL);
     printf("PARE\n");
   } //else

@@ -4,6 +4,8 @@
 #include "DataStruct.h"
 #include "command.h"
 
+#define MD5SUM_COMMAND "md5sum %s"
+
 //
 void itoa(int n, char* s);
 //
