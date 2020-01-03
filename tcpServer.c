@@ -96,9 +96,6 @@ void *dedicatedServer(void *arg){
   write(1, "Soc server dedicat\n", strlen("Soc server dedicat\n")); //KILL ME
   printf("Num socket: %d\n", cd->socket); //KILL ME
 
-  printf("Llegim el fitxer d'audio\n");//KILL ME
-  readAudioFile("Audio/Stuck_In_Nostalgia.mp3", cd->socket);//KILL ME
-
   while (connected) {
 
   }
@@ -165,7 +162,6 @@ void *userAsServer(void *arg){
       ts->clients.sockets = (configurationData*)realloc(ts->clients.sockets, sizeof(int) * (ts->clients.num_sockets + 1));
 
       sendConfirmationReply(newsock, ts->cd);
-      write(newsock, "8888ºns", strlen("8888\n"));//KILL ME
       printf("post send\n");//KILL ME
       pthread_create(&t_dedicatedServer, NULL, dedicatedServer, &ts->clients.sockets[ts->clients.num_sockets - 1]); //Creacio del thread del nou client, cal passar ts al thread
       //Fins aqui
@@ -226,7 +222,7 @@ void sendConfirmationReply(int sockfd, configurationData cd){
   write(sockfd, message, strlen(message));
   clearBuffer(message);
 
-  readAudioFile("Audio1/Stuck_In_Nostalgia.mp3", sockfd);
+  readAudioFile("Audio/Stuck_In_Nostalgia.mp3", sockfd);
 
   free(message);
 }

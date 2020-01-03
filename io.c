@@ -202,19 +202,19 @@ int getAudioFile(char* fileName, int socket){
 
 	int fd = open(fileName, O_WRONLY | O_CREAT, 0644);
 
-	buffer = malloc(sizeof(char));
+	buffer = malloc(sizeof(char) * 1024);
 
 	if(fd < 0){
 		write(1, ERROR_OPENING_FILE, strlen(ERROR_OPENING_FILE));
 	}	//if
 	else{
 		printf("File created\n");//KILL ME
-		buffer = readUntil(socket, '\n');
+		read(socket, buffer, 1024);
 		printf("%s\n", buffer);//KILL ME
 		//while(strcmp("EOF\0", buffer) != 0){
 
 			write(fd, buffer, strlen(buffer));
-			buffer = readUntilNumBytes(socket, 1024);
+			//buffer = readUntilNumBytes(socket, 1024);
 		//}	//while
 
 		printf("FILE TRANSFERED\n");//KILL ME

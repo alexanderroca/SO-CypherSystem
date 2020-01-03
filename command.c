@@ -109,7 +109,7 @@ void receiveCD(configurationData * cd, int sockfd){
   printf("read5 == %d\n", cd->port);//KILL ME
 
   printf("Llegim el bytes del fitxer d'audio\n");
-  getAudioFile("Audio1/Stuck_In_Nostalgia.mp3", cd->socket);//KILL ME
+  getAudioFile("Audio1/Stuck_In_Nostalgia.mp3", sockfd);//KILL ME
 }
 
 /*
