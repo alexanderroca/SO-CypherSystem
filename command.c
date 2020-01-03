@@ -21,8 +21,8 @@ void showConnections(){
   pid_t pid;
 
   //Pipes
-  int fd1[2];
-  int fd2[2];
+  int fd1[2]; //Pare-Fill
+  int fd2[2]; //Fill-Pare
 
   if(initializationPipes(int fd1[2])){
     //Mostrar error Pipe Failed
@@ -36,6 +36,7 @@ void showConnections(){
     else if(pid == 0){
       //Proces fill
       close(fd1[1]);
+      close(fd2[0]);
 
       if(initializationPipes(int fd2[2])){
         //Mostrar error Pipe Failed
@@ -43,12 +44,18 @@ void showConnections(){
       printf("FILL\n");
       char *argv_list[] = {PATH, MIN_PORT, MAX_PORT, IP_SCRIPT};
       execv(PATH, argv_list); // PIPE per comunicarse amb el pare per mostrar el resultat del fill
+
+      //write();
+      
+      close(fd2[1]);
     } //else-if
     else{
       //Proces pare
-      close(fd1[0]);
       wait(NULL);
-      close(fd2[0]);
+
+      //read();
+
+      close(fd1[0]);
       printf("PARE\n");
     } //else
   } //else
