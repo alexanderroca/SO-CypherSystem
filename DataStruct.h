@@ -41,6 +41,37 @@
 
 #define MT_CONNECTION 0x01
 
+////////////////////Defines for message sending protocol////////////////////////
+
+//All messages must be composed of PROTOCOL_MESSAGE
+#define PROTOCOL_MESSAGE "%X %s %d %s\n" //Message Type, Headder, Length, Data
+
+//MT stands for message type
+#define MT_CONNECTION 0x01
+#define MT_SAY 0x02
+#define MT_BROADCAST 0x03
+#define MT_SHOWAUDIO 0x04
+#define MT_DOWNAUDIO 0x05
+#define MT_EXIT 0x06
+
+//Headers
+#define H_TRNAME "[TR_NAME]"
+#define H_MSG "[MSG]"
+#define H_MSGOK "[MSGOK]"
+#define H_BROAD "[BROADCAST]"
+#define H_SHOWAUDIO "[SHOW_AUDIOS]"
+#define H_LISTAUDIO "[LIST_AUDIOS]"
+#define H_AUDIORES "[AUDIO_RSPNS]"
+#define H_AUDIOREQ "[AUDIO_RQST]"
+#define H_AUDIOKO "[AUDIO_KO]"
+#define H_EXIT "[]"
+#define H_CONOK "[CONOK]"
+#define H_CONKO "[CONKO]"
+#define H_MD5OK "[MD5OK]"
+#define H_MD5KO "[MD5KO]"
+#define H_EOF "[EOF]"
+
+////////////////////////////////////////////////////////////////////////////////
 
 //defines for main.c
 #define FILE_NOT_FOUND_ERR "Error, invalid path\n"
