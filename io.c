@@ -188,8 +188,8 @@ int readAudioFile(char* path, int socket){
 		}	//while
 	}	//else
 
-	sprintf(buff, MD5SUM_COMMAND, file_name);
-	system("md5sum filename");
+	/*sprintf(buff, MD5SUM_COMMAND, file_name);
+	system("md5sum filename");*/
 	return 0;
 }
 

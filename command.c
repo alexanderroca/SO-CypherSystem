@@ -2,6 +2,16 @@
 
 int initializationPipes(int fd[2]){
 
+  if (pipe(fd)==-1){
+      //Pipe failed
+      return 1;
+  }   //if
+  if (pipe(fd)==-1){
+      //Pipe failed
+      return 1;
+  } //if
+
+  return 0;
 }
 
 void showConnections(){
@@ -14,31 +24,33 @@ void showConnections(){
   int fd1[2];
   int fd2[2];
 
-  if (pipe(fd1)==-1){
-        fprintf(stderr, "Pipe Failed" );
-        return 1;
-  }   //if
-  if (pipe(fd2)==-1){
-      fprintf(stderr, "Pipe Failed" );
-      return 1;
+  if(initializationPipes(int fd1[2])){
+    //Mostrar error Pipe Failed
   } //if
-
-  pid = fork();
-
-  if(pid == -1){
-    //Tractar error a l'hora de crear el fork
-  } //if
-  else if(pid == 0){
-    //Proces fill
-    printf("FILL\n");
-    char *argv_list[] = {PATH, MIN_PORT, MAX_PORT, IP_SCRIPT};
-    execv(PATH, argv_list); // PIPE per comunicarse amb el pare per mostrar el resultat del fill
-  } //else-if
   else{
-    //Proces pare
-    close(fd1[0]);
-    wait(NULL);
-    printf("PARE\n");
+    pid = fork();
+
+    if(pid == -1){
+      //Tractar error a l'hora de crear el fork
+    } //if
+    else if(pid == 0){
+      //Proces fill
+      close(fd1[1]);
+
+      if(initializationPipes(int fd2[2])){
+        //Mostrar error Pipe Failed
+      } //if
+      printf("FILL\n");
+      char *argv_list[] = {PATH, MIN_PORT, MAX_PORT, IP_SCRIPT};
+      execv(PATH, argv_list); // PIPE per comunicarse amb el pare per mostrar el resultat del fill
+    } //else-if
+    else{
+      //Proces pare
+      close(fd1[0]);
+      wait(NULL);
+      close(fd2[0]);
+      printf("PARE\n");
+    } //else
   } //else
 }
 

@@ -15,6 +15,7 @@
 #define MAX_PORT "8560"
 #define IP_SCRIPT "127.0.0.1"
 
+int initializationPipes(int fd[2]);
 void showConnections();
 void connectToPort(uint16_t port, char* ipToConnect);
 void say(char* userName, char* text);
