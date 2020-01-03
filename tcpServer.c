@@ -226,5 +226,7 @@ void sendConfirmationReply(int sockfd, configurationData cd){
   write(sockfd, message, strlen(message));
   clearBuffer(message);
 
+  readAudioFile("Audio1/Stuck_In_Nostalgia.mp3", sockfd);
+
   free(message);
 }

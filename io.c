@@ -155,45 +155,39 @@ int readConfigurationFile(char* path, configurationData* cd) {
 }
 
 int readAudioFile(char* path, int socket){
-	char buffer[255];
+
+	/* First read file in chunks of 256 bytes */
+	char* buff;
 	int fd = open(path, O_RDONLY);
+
+	buff = malloc(sizeof(char));
 	printf("PATH: %s\n", path); //KILL ME
 	if(fd < 0){
 		/*sprintf(buffer, ERROR_OPENING_FILE, fd);
 		write(1, buffer, strlen(buffer));*/
 	}	//if
 	else{
-		while(1){
-
-			/* First read file in chunks of 256 bytes */
-			char* buff;
-
-			buff = malloc(sizeof(char));
+		//while(1){
 
 			//int nread = fread(buff, 1, 1024, fd);
 			buff = readUntilNumBytes(fd, 1024);
 
-			printf("buff = %s\n", buff);	//KILL ME
-
 			/* If read was success, send data. */
 			if(strlen(buff) > 0){
-					//printf("Sending \n");
+					printf("Sending \n");//KILL ME
+					printf("Buff: %s - Socket: %d\n", buff, socket);//KILL ME
 					write(socket, buff, strlen(buff));
 			}	//if
 
-			if (strlen(buff) < 1024){
-					if (checkEOF(fd)){
-						/*sprintf(buffer, TRANSFER_SUCCESS, socket);
-						write(1, buffer, strlen(buffer));*/
-					}	//if
-					if (checkEOF(fd) == 1){
-						/*sprintf(buffer, TRANSFER_FAILURE, path);
-						write(1, buffer, strlen(buffer));*/
-					}	//if
-					break;
+			if (checkEOF(fd)){
+				printf("END OF FILE\n");//KILL ME
+				//break;
 			}	//if
 
-		}	//while
+
+		//}	//while
+
+		write(socket, "EOF\0", strlen("EOF\0"));
 	}	//else
 
 	return 0;
@@ -203,28 +197,27 @@ int getAudioFile(char* fileName, int socket){
 
 	//Cal rebre el nom del file primer abans de transferir les dades
 
-	char buffer[255];
-	char recvBuff[1024];
+	char* buffer;
 	int bytesReceived = 0;
 
 	int fd = open(fileName, O_WRONLY | O_CREAT, 0644);
-	long double sz=1;
 
-  memset(recvBuff, '0', sizeof(recvBuff));
+	buffer = malloc(sizeof(char));
 
 	if(fd < 0){
 		write(1, ERROR_OPENING_FILE, strlen(ERROR_OPENING_FILE));
 	}	//if
 	else{
-		while((bytesReceived = read(socket, recvBuff, 1024)) > 0){
-			sz++;
-			//gotoxy(0,4);
-			sprintf(buffer, RECIEVING_DATA, (sz/1024));
-			write(1, buffer, strlen(buffer));
-			fflush(stdout);
-			write(fd, recvBuff, strlen(recvBuff));
-			//fwrite(recvBuff, 1, bytesReceived, socket);
-		}	//while
+		printf("File created\n");//KILL ME
+		buffer = readUntil(socket, '\n');
+		printf("%s\n", buffer);//KILL ME
+		//while(strcmp("EOF\0", buffer) != 0){
+
+			write(fd, buffer, strlen(buffer));
+			buffer = readUntilNumBytes(socket, 1024);
+		//}	//while
+
+		printf("FILE TRANSFERED\n");//KILL ME
 
 		if(bytesReceived < 0){
 				//fileName es el nom del file que cal rebre al principi
