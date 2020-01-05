@@ -86,7 +86,10 @@
 #define STARTUP "Starting Trinity...\n"
 
 //defines for command.c
+#define SAY_MSG "[%s] %s"
 #define NUM_CONNECTIONS "Connections availables: %d\n"
+#define ERR_NOUSERS "Error, no users connected.\n"
+#define ERR_UNKNOWNUSER "Error, user unknown.\n"
 
 typedef struct {
 	char* toConnect;

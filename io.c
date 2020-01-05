@@ -244,7 +244,15 @@ int sendSocketMSG(int sockfd, char * data, int type){
 			write(sockfd, message, strlen(message));
 
 			break;
+		case 1:
+			break;
 		case 2:
+			printf("in case 2\n");//KILL ME
+			length = strlen(data);
+			message = realloc(message, sizeof(char) * (length + strlen(H_MSG) + 10));
+
+			sprintf(message, PROTOCOL_MESSAGE, MT_SAY, H_MSG, length, data);
+			write(sockfd, message, strlen(message));
 			break;
 		case 3:
 			break;
@@ -292,28 +300,24 @@ char * receiveSocketMSG(int sockfd){
 			data = realloc(data, sizeof(char) * strlen(ptr[2]));
 
 			//guardem totes la info rebuda en un sol string on nomes hi ha dades utils
-			for (c = 3; c < num_camps; c++) {
+			data = ptr[3];
+			for (c = 4; c < num_camps; c++) {
 				sprintf(data, "%s %s", data, ptr[c]);
 			}//for
 
-		break;
-
+			break;
 		case 1:
 		//CONNECT
-		break;
-
+			break;
 		case 4:
 		//SHOW AUDIOS
-		break;
-
+			break;
 		case 5:
 		//DOWNLOAD AUDIOS
-		break;
-
+			break;
 		case 6:
 		//EXIT
-		break;
-
+			break;
 		default:
 		write(1, "Error Default criteria met in receiveSocketMSG\n",
 			strlen("Error Default criteria met in receiveSocketMSG\n"));
@@ -332,7 +336,8 @@ int sendSocketReply(int type, int okko){
 	switch (type) {
 		case 1:
 		break;
-		case 2, 3:
+		case 2:
+		case 3:
 		break;
 		case 5://only MD5SUM reply
 		break;
@@ -410,7 +415,7 @@ int  checkCommand(char * user_input, configurationData cd, connectedList * cl) {
 	}else{//if connect
 		if (strcasecmp(ptr[0], CMD_SAY) == 0) {
 
-			checkCMDSay(ptr, c);
+			checkCMDSay(ptr, c, cl, cd);
 		}else{//if say
 			if (strcasecmp(ptr[0], CMD_BROADCAST) == 0) {
 
@@ -499,7 +504,7 @@ void checkCMDConnect(char **ptr, int c, connectedList * cl) {
 					have been read from user_input
 * @param: c integer that store the number of word in the ptr array.
 ******************************************************************************/
-void checkCMDSay(char **ptr, int c){
+void checkCMDSay(char **ptr, int c, connectedList * cl, configurationData cd){
 
 	char *user, *message;
 	char * buffer;
@@ -570,7 +575,7 @@ void checkCMDSay(char **ptr, int c){
 
 		sprintf(buffer_aux, "sending %s to user %s\n", message, user);//KILL ME
 		write(1, buffer_aux, strlen(buffer_aux));//KILL ME
-		//say(user, message);//TODO: implement function
+		say(user, message, cl, cd);//TODO: implement function
 	}//if
 
 	free(buffer);

@@ -44,7 +44,7 @@ void stringToUpper(char * string);
 * are trying to execute.
 ******************************************************************************/
 void checkCMDConnect(char **ptr, int c, connectedList * cl);
-void checkCMDSay(char **ptr, int c);
+void checkCMDSay(char **ptr, int c, connectedList * cl, configurationData cd);
 void checkCMDBroadcast(char **ptr, int c);
 void checkCMDDownload(char **ptr, int c);
 void checkCMDShow(char **ptr, int c, configurationData cd);

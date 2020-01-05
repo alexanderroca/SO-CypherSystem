@@ -122,7 +122,6 @@ void connectToPort(uint16_t portToConnect, char* ipToConnect, connectedList * cl
 
 }
 
-//MUST BE CONTINUED
 void receiveCD(connectedInfo * ci, int sockfd){
   char* buffer;
 
@@ -140,6 +139,34 @@ void receiveCD(connectedInfo * ci, int sockfd){
   //printf("Llegim el bytes del fitxer d'audio\n");
   //getAudioFile("Audio1/Stuck_In_Nostalgia.mp3", sockfd);//KILL ME
 }
+
+void say(char * user, char * data, connectedList * cl, configurationData cd){
+  int i, found = 0;
+  char * message;
+
+  message = (char*)malloc(sizeof(char) * (strlen(data) + strlen(cd.userName) + 5));
+  sprintf(message, SAY_MSG, cd.userName, data);
+  printf("in say\n");//KILL ME
+
+  if (cl->num_connected == 0) {
+    write(1, ERR_NOUSERS, strlen(ERR_NOUSERS));
+  }else{
+    for (i = 0; i < cl->num_connected && !found; i++) {
+      printf("user-%s cl-%s\n", user, cl->info[i].userName);
+      if (strcasecmp(cl->info[i].userName, user) == 0) {
+        printf("MSG to send == %s\n", message);
+        sendSocketMSG(cl->info[i].socket, message, 2);
+        found = 1;
+
+      }//if
+    }//for
+
+    if (!found) {
+      write(1, ERR_UNKNOWNUSER, strlen(ERR_UNKNOWNUSER));
+
+    }//if
+  }//else
+}//func
 
 /*
 void broadcast(char* msg, ThreadServer* ts){

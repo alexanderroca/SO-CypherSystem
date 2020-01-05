@@ -18,7 +18,7 @@
 int initializationPipes(int fd[2]);
 void showConnections();
 void connectToPort(uint16_t port, char* ipToConnect, connectedList * cl);
-void say(char* userName, char* text);
+void say(char * user,char * message, connectedList * cl, configurationData cd);
 void receiveCD(connectedInfo * ci, int sockfd);
 //void broadcast(char* msg, ThreadServer* ts);
 void showAudios(char* userName);

@@ -96,15 +96,28 @@ void *userAsClient(void *arg){
 //Servidor dedicat per client connectat al serverClient
 void *dedicatedServer(void *arg){
   int connected = 1;
+  char * message;
+  char * show_message;
+  char * client_name;
 
   configurationData *cd = (configurationData *) arg;
+  show_message = (char*)malloc(sizeof(char));
+  client_name = (char*)malloc(sizeof(char) * (strlen(cd->userName) + 5));
+  sprintf(client_name, USERCLIENT, cd->userName);
 
   write(1, "Soc server dedicat\n", strlen("Soc server dedicat\n")); //KILL ME
   printf("Num socket: %d\n", cd->socket); //KILL ME
 
   while (connected) {
-
+    message = receiveSocketMSG(cd->socket);
+    printf("post msg received\n");//KILL ME
+    write(1, message, strlen(message));
+    write(1, "\n", strlen("\n"));
+    write(1, client_name, strlen(client_name));
+    clearBuffer(message);
   }
+
+  free(show_message);
 
   return NULL;
 }
@@ -165,10 +178,9 @@ void *userAsServer(void *arg){
       ts->clients.num_sockets++;
       printf("- NUM Clients connectats: %d\n", ts->clients.num_sockets);
       ts->clients.sockets = (configurationData*)realloc(ts->clients.sockets, sizeof(int) * (ts->clients.num_sockets + 1));
+      ts->clients.sockets[ts->clients.num_sockets - 1].userName = ts->cd.userName;
 
       sendConfirmationReply(newsock, ts->cd);
-      printf("post send\n");//KILL ME
-
       pthread_create(&t_dedicatedServer, NULL, dedicatedServer, &ts->clients.sockets[ts->clients.num_sockets - 1]); //Creacio del thread del nou client, cal passar ts al thread
       //Fins aqui
     } //else
