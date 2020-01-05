@@ -255,6 +255,12 @@ int sendSocketMSG(int sockfd, char * data, int type){
 			write(sockfd, message, strlen(message));
 			break;
 		case 3:
+			printf("in case 3\n");//KILL ME
+			length = strlen(data);
+			message = realloc(message, sizeof(char) * (length + strlen(H_BROAD) + 10));
+
+			sprintf(message, PROTOCOL_MESSAGE, MT_BROADCAST, H_BROAD, length, data);
+			write(sockfd, message, strlen(message));
 			break;
 		case 4:
 			break;
@@ -419,7 +425,7 @@ int  checkCommand(char * user_input, configurationData cd, connectedList * cl) {
 		}else{//if say
 			if (strcasecmp(ptr[0], CMD_BROADCAST) == 0) {
 
-				checkCMDBroadcast(ptr, c);
+				checkCMDBroadcast(ptr, c, cl, cd);
 			}else{//if broadcast
 				if (strcasecmp(ptr[0], CMD_DOWNLOAD) == 0) {
 
@@ -595,11 +601,10 @@ void checkCMDSay(char **ptr, int c, connectedList * cl, configurationData cd){
 					have been read from user_input
 * @param: c integer that store the number of word in the ptr array.
 ******************************************************************************/
-void checkCMDBroadcast(char **ptr, int c) {
+void checkCMDBroadcast(char **ptr, int c, connectedList * cl, configurationData cd) {
 
 	char *message, *buffer;
 	int i, ok;
-	char buffer_aux[100] = " ";//KILL ME
 
 	ok = 1;
 	buffer = (char*)malloc(sizeof(char));
@@ -644,9 +649,7 @@ void checkCMDBroadcast(char **ptr, int c) {
 
 	if (ok) {
 
-		sprintf(buffer_aux, "broadcasting %s\n", message);//KILL ME
-		write(1, buffer_aux, strlen(buffer_aux));
-		//broadcast(message); //TODO: implement function
+		broadcast(message, cl, cd);
 	}//if
 }//func
 

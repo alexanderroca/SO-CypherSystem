@@ -145,7 +145,7 @@ void say(char * user, char * data, connectedList * cl, configurationData cd){
   char * message;
 
   message = (char*)malloc(sizeof(char) * (strlen(data) + strlen(cd.userName) + 5));
-  sprintf(message, SAY_MSG, cd.userName, data);
+  sprintf(message, SEND_MSG, cd.userName, data);
   printf("in say\n");//KILL ME
 
   if (cl->num_connected == 0) {
@@ -168,20 +168,23 @@ void say(char * user, char * data, connectedList * cl, configurationData cd){
   }//else
 }//func
 
-/*
-void broadcast(char* msg, ThreadServer* ts){
+void broadcast(char * data, connectedList * cl, configurationData cd){
   int i;
+  char * message;
+
+  message = (char*)malloc(sizeof(char) * (strlen(data) + strlen(cd.userName) + 5));
+  sprintf(message, SEND_MSG, cd.userName, data);
 
   //semafor
-  for(i = 0; i < ts->clients.num_sockets; i++){
-
-    if(write(ts->clients->sockets.socket, msg, strlen(msg)) < 0){
-
-      perror("sending failure");
-      continue;
-    } //if
-  } //for
+  if (cl->num_connected == 0) {
+    write(1, ERR_NOUSERS, strlen(ERR_NOUSERS));
+  }else{
+    //enviem el misatge a tots els usuaris conectats
+    for(i = 0; i < cl->num_connected; i++){
+      printf("sending broadcast to socket %d\n", cl->info[i].socket);
+      sendSocketMSG(cl->info[i].socket, message, 3);
+    } //for
+  }//else
   //fi_ssemafor
 
 }
-*/

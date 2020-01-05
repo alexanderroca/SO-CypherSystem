@@ -47,7 +47,6 @@ int serverClient(configurationData cd){
 
   //SEM_destructor(&sem_clientServer);
 
-
   return 0;
 }
 
@@ -189,7 +188,6 @@ void *userAsServer(void *arg){
   return (void *) 0;
 }
 
-//MUST BE CONTINUED
 void sendConfirmationReply(int sockfd, configurationData cd){
   char buffer[255];
 

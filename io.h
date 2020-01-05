@@ -45,7 +45,7 @@ void stringToUpper(char * string);
 ******************************************************************************/
 void checkCMDConnect(char **ptr, int c, connectedList * cl);
 void checkCMDSay(char **ptr, int c, connectedList * cl, configurationData cd);
-void checkCMDBroadcast(char **ptr, int c);
+void checkCMDBroadcast(char **ptr, int c, connectedList * cl, configurationData cd);
 void checkCMDDownload(char **ptr, int c);
 void checkCMDShow(char **ptr, int c, configurationData cd);
 
