@@ -28,6 +28,9 @@ int getAudioFile(char* fileName, int socket);
 //general function to send messages via sockets
 int sendSocketMSG(int sockfd, char * data, int type);
 
+//function to recieve data from sockets
+char * receiveSocketMSG(int sockfd);
+
 //does the initial check for the users command input before calling command
 //specific checking functions
 int checkCommand(char * user_input, configurationData cd, connectedList * cl);

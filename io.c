@@ -236,14 +236,13 @@ int sendSocketMSG(int sockfd, char * data, int type){
 
 	switch (type) {
 		case 0:
-			printf("in case 0\n");//KILL ME
 			//sending configuration data type messages
 			length = strlen(data);
 			message = realloc(message, sizeof(char) * (length + strlen(H_CONFIGDATA) + 10));
 
 			sprintf(message, PROTOCOL_MESSAGE, MT_CONFIGDATA, H_CONFIGDATA, length, data);
 			write(sockfd, message, strlen(message));
-			printf("message sent via sendSocketMSG\n");//KILL ME
+
 			break;
 		case 2:
 			break;
@@ -262,7 +261,70 @@ int sendSocketMSG(int sockfd, char * data, int type){
 	}//switch
 
 	return 1;
-}
+}//func
+
+
+char * receiveSocketMSG(int sockfd){
+	char * data, * buffer, * aux;
+	int c, num_camps;
+	char **ptr; //ptr[0] = Type ptr[1] = header ptr[2] = length
+
+	buffer = readUntil(sockfd, '\n');
+	ptr = (char**)malloc(sizeof(char*));
+	data = (char*)malloc(sizeof(char));
+
+	for (c = 0, aux = strtok (buffer, " ");
+					aux != NULL; aux = strtok (NULL, " "), c++){
+
+		ptr = realloc (ptr, sizeof (char *) * (c + 2));
+		ptr[c] = aux;
+	}
+
+	num_camps = c;
+
+	switch (atoi(ptr[1])) {
+
+		case 0://RECEIVE CD
+		case 2://RECEIVE MSG
+		case 3://RECEIVE BROADCAST
+			//separem el missatge sencer en les diferents parts separades per " "
+			printf("in cae 123\n");
+			data = realloc(data, sizeof(char) * strlen(ptr[2]));
+
+			//guardem totes la info rebuda en un sol string on nomes hi ha dades utils
+			for (c = 3; c < num_camps; c++) {
+				sprintf(data, "%s %s", data, ptr[c]);
+			}//for
+
+		break;
+
+		case 1:
+		//CONNECT
+		break;
+
+		case 4:
+		//SHOW AUDIOS
+		break;
+
+		case 5:
+		//DOWNLOAD AUDIOS
+		break;
+
+		case 6:
+		//EXIT
+		break;
+
+		default:
+		write(1, "Error Default criteria met in receiveSocketMSG\n",
+			strlen("Error Default criteria met in receiveSocketMSG\n"));
+		break;
+	}//switch
+
+	free(ptr);
+
+	return data;
+}//func
+
 
 /*
 int sendSocketReply(int type, int okko){

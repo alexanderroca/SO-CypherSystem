@@ -126,25 +126,16 @@ void connectToPort(uint16_t portToConnect, char* ipToConnect, connectedList * cl
 void receiveCD(connectedInfo * ci, int sockfd){
   char* buffer;
 
-  printf("sockfd == %d\n", sockfd);//KILL ME
-  //buffer = readUntil(sockfd, '\n');
-  //ci->socket = atoi(buffer);
-  //printf("read1 == %d\n", ci->socket);//KILL ME
   ci->socket = sockfd;
 
-  ci->userName = readUntil(sockfd, '\n');
-  printf("read2 == %s\n", ci->userName);//KILL ME
+  ci->userName = receiveSocketMSG(sockfd);
 
-  ci->audioDirectory = readUntil(sockfd, '\n');
-  printf("read3 == %s\n", ci->audioDirectory);//KILL ME
+  ci->audioDirectory = receiveSocketMSG(sockfd);
 
-  ci->ip = readUntil(sockfd, '\n');
-  printf("read4 == %s\n", ci->ip);//KILL ME
+  ci->ip = receiveSocketMSG(sockfd);
 
-  buffer = readUntil(sockfd, '\n');
-  printf("post read until\n");//KILL ME
+  buffer = receiveSocketMSG(sockfd);
   ci->port = (uint16_t)atoi(buffer);
-  printf("read5 == %d\n", ci->port);//KILL ME
 
   //printf("Llegim el bytes del fitxer d'audio\n");
   //getAudioFile("Audio1/Stuck_In_Nostalgia.mp3", sockfd);//KILL ME

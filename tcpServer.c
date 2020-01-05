@@ -180,64 +180,18 @@ void *userAsServer(void *arg){
 //MUST BE CONTINUED
 void sendConfirmationReply(int sockfd, configurationData cd){
   char buffer[255];
-  char * message;
-
-  message = (char*)malloc(sizeof(char));
-  clearBuffer(buffer);
-
-  printf("Envio reply de confirmacio de connexio del socket %d\n", sockfd);
-
-  /*
-  //envia num socket
-  clearBuffer(buffer);
-  itoa(sockfd, buffer);
-  message = realloc(message, sizeof(char) * (strlen(buffer) + 1));
-  strcpy(message, buffer);
-  message[strlen(message)] = '\n';
-  printf("message 1 == %s\n", message);//KILL ME
-  write(sockfd, message, strlen(message));
-  clearBuffer(message);
-  */
 
   //envia userName
-  /*
-  message = realloc(message, sizeof(char) * (strlen(cd.userName) + 1));
-  strcpy(message, cd.userName);
-  message[strlen(message)] = '\n';
-  printf("message 2 == %s\n", message);//KILL ME
-  write(sockfd, message, strlen(message));
-  clearBuffer(message);
-  */
-
   sendSocketMSG(sockfd, cd.userName, 0);
 
   //envia audioDirectory
-  message = realloc(message, sizeof(char) * (strlen(cd.audioDirectory) + 1));
-  strcpy(message, cd.audioDirectory);
-  message[strlen(message)] = '\n';
-  printf("message 3 == %s\n", message);//KILL ME
-  write(sockfd, message, strlen(message));
-  clearBuffer(message);
+  sendSocketMSG(sockfd, cd.audioDirectory, 0);
 
   //envia ip
-  message = realloc(message, sizeof(char) * (strlen(cd.ip) + 1));
-  strcpy(message, cd.ip);
-  message[strlen(message)] = '\n';
-  printf("message 4 == %s\n", message);//KILL ME
-  write(sockfd, message, strlen(message));
-  clearBuffer(message);
+  sendSocketMSG(sockfd, cd.ip, 0);
 
   //envia port
-  clearBuffer(buffer);
   itoa((int)cd.port, buffer);
-  message = realloc(message, sizeof(char) * (strlen(buffer) + 1));
-  strcpy(message, buffer);
-  message[strlen(message)] = '\n';
-  printf("message 5 == %s\n", message);//KILL ME
-  write(sockfd, message, strlen(message));
-  clearBuffer(message);
-
+  sendSocketMSG(sockfd, buffer, 0);
   //readAudioFile("Audio/Stuck_In_Nostalgia.mp3", sockfd);
-
-  free(message);
 }
