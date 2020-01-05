@@ -13,6 +13,11 @@
 #include <assert.h>
 #include <sys/wait.h>
 
+//defines tcpServer
+#define PORT 8550
+#define WELCOME "Starting trinity...\n"
+#define USERCLIENT "$%s: "
+
 //defines for io.c
 #define ENTER_SEP '\n'
 #define AUDIO_FILE ".mp3"
@@ -47,6 +52,7 @@
 #define PROTOCOL_MESSAGE "%X %s %d %s\n" //Message Type, Headder, Length, Data
 
 //MT stands for message type
+#define MT_CONFIGDATA 0x00
 #define MT_CONNECTION 0x01
 #define MT_SAY 0x02
 #define MT_BROADCAST 0x03
@@ -55,6 +61,7 @@
 #define MT_EXIT 0x06
 
 //Headers
+#define H_CONFIGDATA "[CD]"
 #define H_TRNAME "[TR_NAME]"
 #define H_MSG "[MSG]"
 #define H_MSGOK "[MSGOK]"
@@ -99,12 +106,15 @@ typedef struct {
 
 typedef struct {
 	int socket;
-	char * user;
-}userSocket;
+	char * userName;
+	char * audioDirectory;
+	char * ip;
+	uint16_t port;
+}connectedInfo;
 
-/*
 typedef struct{
+	int num_connected;
+	connectedInfo * info;
+}connectedList;
 
-}
-*/
 #endif

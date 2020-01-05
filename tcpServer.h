@@ -12,10 +12,6 @@
 #include "command.h"
 #include "io.h"
 
-#define PORT 8550
-#define WELCOME "Starting trinity...\n"
-#define USERCLIENT "$%s: "
-
 typedef struct{
   int num_sockets;
   configurationData* sockets;

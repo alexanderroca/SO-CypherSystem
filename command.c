@@ -61,9 +61,9 @@ void showConnections(){
   } //else
 }
 
-void connectToPort(uint16_t portToConnect, char* ipToConnect) {
+void connectToPort(uint16_t portToConnect, char* ipToConnect, connectedList * cl) {
 
-  configurationData cd;
+  //configurationData cd;
 
   //Comprovem la validesa del port
   if(portToConnect < atoi(MIN_PORT) && portToConnect > atoi(MAX_PORT)){
@@ -109,44 +109,45 @@ void connectToPort(uint16_t portToConnect, char* ipToConnect) {
     exit(EXIT_FAILURE);
   } //if
 
+  cl->num_connected++;
   write(1, "Connecting...\n", strlen("Connecting...\n"));
-  receiveCD(&cd, sockfd);
-  printf("socket == %d\n", cd.socket);
-  printf("user connected %s\n", cd.userName);//KILL ME
-  printf("audio audioDirectory %s\n", cd.audioDirectory);//KILL ME
-  printf("ip %s\n", cd.ip);//KILL ME
-  printf("port %d\n", cd.port);//KILL ME
+  receiveCD(&(cl->info[cl->num_connected - 1]), sockfd);
+  printf("socket == %d\n", cl->info[cl->num_connected - 1].socket);
+  printf("user connected %s\n", cl->info[cl->num_connected - 1].userName);//KILL ME
+  printf("audio audioDirectory %s\n", cl->info[cl->num_connected - 1].audioDirectory);//KILL ME
+  printf("ip %s\n", cl->info[cl->num_connected - 1].ip);//KILL ME
+  printf("port %d\n", cl->info[cl->num_connected - 1].port);//KILL ME
   //sprintf(buffer, "%d connected: %s\n", portToConnect, cd.userName);
   //write(1, buffer, strlen(buffer));
 
 }
 
 //MUST BE CONTINUED
-void receiveCD(configurationData * cd, int sockfd){
+void receiveCD(connectedInfo * ci, int sockfd){
   char* buffer;
 
   printf("sockfd == %d\n", sockfd);//KILL ME
-  buffer = readUntil(sockfd, '\n');
-  cd->socket = atoi(buffer);
-  printf("read1 == %d\n", cd->socket);//KILL ME
+  //buffer = readUntil(sockfd, '\n');
+  //ci->socket = atoi(buffer);
+  //printf("read1 == %d\n", ci->socket);//KILL ME
+  ci->socket = sockfd;
 
-  cd->userName = readUntil(sockfd, '\n');
-  printf("read2 == %s\n", cd->userName);//KILL ME
+  ci->userName = readUntil(sockfd, '\n');
+  printf("read2 == %s\n", ci->userName);//KILL ME
 
-  cd->audioDirectory = readUntil(sockfd, '\n');
-  printf("read3 == %s\n", cd->audioDirectory);//KILL ME
+  ci->audioDirectory = readUntil(sockfd, '\n');
+  printf("read3 == %s\n", ci->audioDirectory);//KILL ME
 
-  cd->ip = readUntil(sockfd, '\n');
-  printf("read4 == %s\n", cd->ip);//KILL ME
+  ci->ip = readUntil(sockfd, '\n');
+  printf("read4 == %s\n", ci->ip);//KILL ME
 
-  clearBuffer(buffer);
   buffer = readUntil(sockfd, '\n');
   printf("post read until\n");//KILL ME
-  cd->port = (uint16_t)atoi(buffer);
-  printf("read5 == %d\n", cd->port);//KILL ME
+  ci->port = (uint16_t)atoi(buffer);
+  printf("read5 == %d\n", ci->port);//KILL ME
 
-  printf("Llegim el bytes del fitxer d'audio\n");
-  getAudioFile("Audio1/Stuck_In_Nostalgia.mp3", sockfd);//KILL ME
+  //printf("Llegim el bytes del fitxer d'audio\n");
+  //getAudioFile("Audio1/Stuck_In_Nostalgia.mp3", sockfd);//KILL ME
 }
 
 /*

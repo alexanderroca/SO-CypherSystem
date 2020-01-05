@@ -1,6 +1,5 @@
 #include "io.h"
 
-
 /******************************************************************************
 *
 *
@@ -77,8 +76,9 @@ char* readUntil(int fd, char end) {
 
 	string[i - 1] = '\0';
 	return string;
-}
+}//func
 
+//DEPRECATED?
 char* readUntilNumBytes(int fd, int num) {
 	int i = 0;
 	char c = '\0';
@@ -154,6 +154,8 @@ int readConfigurationFile(char* path, configurationData* cd) {
 	} //else
 }
 
+///////////////////////////////////WIP/////////////////////////////////////////
+
 int readAudioFile(char* path, int socket){
 
 	/* First read file in chunks of 256 bytes */
@@ -226,6 +228,63 @@ int getAudioFile(char* fileName, int socket){
 	return 0;
 }
 
+int sendSocketMSG(int sockfd, char * data, int type){
+	char * message;
+	int length = 0;
+
+	message = (char*)malloc(sizeof(char));
+
+	switch (type) {
+		case 0:
+			printf("in case 0\n");//KILL ME
+			//sending configuration data type messages
+			length = strlen(data);
+			message = realloc(message, sizeof(char) * (length + strlen(H_CONFIGDATA) + 10));
+
+			sprintf(message, PROTOCOL_MESSAGE, MT_CONFIGDATA, H_CONFIGDATA, length, data);
+			write(sockfd, message, strlen(message));
+			printf("message sent via sendSocketMSG\n");//KILL ME
+			break;
+		case 2:
+			break;
+		case 3:
+			break;
+		case 4:
+			break;
+		case 5:
+			break;
+		case 6:
+			break;
+		default:
+			write(1, "Error Default criteria met in sendSocketMSG\n",
+				strlen("Error Default criteria met in sendSocketMSG\n"));
+			break;
+	}//switch
+
+	return 1;
+}
+
+/*
+int sendSocketReply(int type, int okko){
+
+	switch (type) {
+		case 1:
+		break;
+		case 2, 3:
+		break;
+		case 5://only MD5SUM reply
+		break;
+		case 6:
+		break;
+		default:
+		break;
+	}//switch
+
+	return 1;
+}
+*/
+
+/////////////////////////////////EOWIP//////////////////////////////////////////
 
 /******************************************************************************
 * <Description>
@@ -263,7 +322,7 @@ int checkEOF(int fd) {
 * @param: user_input data recalled from the keyboard as input by the user
 * @param: cd configuration data sed to send info to the functions that need it
 ******************************************************************************/
-int  checkCommand(char * user_input, configurationData cd) {
+int  checkCommand(char * user_input, configurationData cd, connectedList * cl) {
 
 	printf("Inside checkCommand\n");
 
@@ -285,7 +344,7 @@ int  checkCommand(char * user_input, configurationData cd) {
 	//mirem la primera paraula llegida i actuem en consequencia
 	if (strcasecmp(ptr[0], CMD_CONNECT) == 0) {
 
-		checkCMDConnect(ptr, c);
+		checkCMDConnect(ptr, c, cl);
 	}else{//if connect
 		if (strcasecmp(ptr[0], CMD_SAY) == 0) {
 
@@ -341,7 +400,7 @@ void stringToUpper(char * string) {
 					have been read from user_input
 * @param: c integer that store the number of word in the ptr array.
 ******************************************************************************/
-void checkCMDConnect(char **ptr, int c) {
+void checkCMDConnect(char **ptr, int c, connectedList * cl) {
 	char buffer[100] = " ";//KILL ME
 
 	if (c != 2) {
@@ -358,7 +417,7 @@ void checkCMDConnect(char **ptr, int c) {
 		if (atoi(ptr[1]) != 0) {
 			sprintf(buffer, "connecting to %d\n", atoi(ptr[1]));//KILL ME
 			write(1, buffer, strlen(buffer));//KILL ME
-			connectToPort(atoi(ptr[1]), "127.0.0.1");	//BLASCO -> TRACTA STRING EL PORT QUE ESCRIU CLIENT
+			connectToPort(atoi(ptr[1]), "127.0.0.1", cl);	//BLASCO -> TRACTA STRING EL PORT QUE ESCRIU CLIENT
 		}else{
 			write(1, ERR_PORT, strlen(ERR_PORT));
 		}//else

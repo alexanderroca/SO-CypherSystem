@@ -59,9 +59,13 @@ void *userAsClient(void *arg){
   //semaphore sem_clientServer;
   configurationData *cd = (configurationData *) arg;
   char * user_input;
-  char buffer[100] = " ";
+  char * buffer;
   int exit = 0;
+  connectedList connected_list;
 
+  connected_list.num_connected = 0;
+  connected_list.info = (connectedInfo*)malloc(sizeof(connectedInfo));
+  buffer = (char*)malloc(sizeof(char) * (strlen(cd->userName) + 5));
   //SEM_constructor_with_name(&sem_clientServer, ftok("tcpServer.c", atoi("clientServer")));
 
   while (!exit) {
@@ -73,7 +77,7 @@ void *userAsClient(void *arg){
     user_input = readUntil(0, '\n');
 
     if (strlen(user_input)) {
-      exit = checkCommand(user_input, *cd);
+      exit = checkCommand(user_input, *cd, &connected_list);
 
     }else{
 
@@ -83,6 +87,8 @@ void *userAsClient(void *arg){
     //SEM_signal(&sem_clientServer);
 
   }//while
+
+  free(buffer);
 
   return NULL;
 }
@@ -99,7 +105,6 @@ void *dedicatedServer(void *arg){
   while (connected) {
 
   }
-
 
   return NULL;
 }
@@ -163,12 +168,11 @@ void *userAsServer(void *arg){
 
       sendConfirmationReply(newsock, ts->cd);
       printf("post send\n");//KILL ME
+
       pthread_create(&t_dedicatedServer, NULL, dedicatedServer, &ts->clients.sockets[ts->clients.num_sockets - 1]); //Creacio del thread del nou client, cal passar ts al thread
       //Fins aqui
     } //else
-
-
-  }
+  }//While(1)
 
   return (void *) 0;
 }
@@ -182,6 +186,8 @@ void sendConfirmationReply(int sockfd, configurationData cd){
   clearBuffer(buffer);
 
   printf("Envio reply de confirmacio de connexio del socket %d\n", sockfd);
+
+  /*
   //envia num socket
   clearBuffer(buffer);
   itoa(sockfd, buffer);
@@ -191,14 +197,21 @@ void sendConfirmationReply(int sockfd, configurationData cd){
   printf("message 1 == %s\n", message);//KILL ME
   write(sockfd, message, strlen(message));
   clearBuffer(message);
+  */
 
+  //envia userName
+  /*
   message = realloc(message, sizeof(char) * (strlen(cd.userName) + 1));
   strcpy(message, cd.userName);
   message[strlen(message)] = '\n';
   printf("message 2 == %s\n", message);//KILL ME
   write(sockfd, message, strlen(message));
   clearBuffer(message);
+  */
 
+  sendSocketMSG(sockfd, cd.userName, 0);
+
+  //envia audioDirectory
   message = realloc(message, sizeof(char) * (strlen(cd.audioDirectory) + 1));
   strcpy(message, cd.audioDirectory);
   message[strlen(message)] = '\n';
@@ -206,6 +219,7 @@ void sendConfirmationReply(int sockfd, configurationData cd){
   write(sockfd, message, strlen(message));
   clearBuffer(message);
 
+  //envia ip
   message = realloc(message, sizeof(char) * (strlen(cd.ip) + 1));
   strcpy(message, cd.ip);
   message[strlen(message)] = '\n';
@@ -213,6 +227,7 @@ void sendConfirmationReply(int sockfd, configurationData cd){
   write(sockfd, message, strlen(message));
   clearBuffer(message);
 
+  //envia port
   clearBuffer(buffer);
   itoa((int)cd.port, buffer);
   message = realloc(message, sizeof(char) * (strlen(buffer) + 1));
@@ -222,7 +237,7 @@ void sendConfirmationReply(int sockfd, configurationData cd){
   write(sockfd, message, strlen(message));
   clearBuffer(message);
 
-  readAudioFile("Audio/Stuck_In_Nostalgia.mp3", sockfd);
+  //readAudioFile("Audio/Stuck_In_Nostalgia.mp3", sockfd);
 
   free(message);
 }

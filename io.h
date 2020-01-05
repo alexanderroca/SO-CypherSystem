@@ -24,9 +24,14 @@ int readConfigurationFile(char* path, configurationData* cd);
 int readAudioFile(char* path, int socket);
 
 int getAudioFile(char* fileName, int socket);
+
+//general function to send messages via sockets
+int sendSocketMSG(int sockfd, char * data, int type);
+
 //does the initial check for the users command input before calling command
 //specific checking functions
-int checkCommand(char * user_input, configurationData cd);
+int checkCommand(char * user_input, configurationData cd, connectedList * cl);
+
 //DEPRECATED: Turns all the characters from a string to upper case
 void stringToUpper(char * string);
 
@@ -35,7 +40,7 @@ void stringToUpper(char * string);
 * separated in words and they check the words according to the parameter they
 * are trying to execute.
 ******************************************************************************/
-void checkCMDConnect(char **ptr, int c);
+void checkCMDConnect(char **ptr, int c, connectedList * cl);
 void checkCMDSay(char **ptr, int c);
 void checkCMDBroadcast(char **ptr, int c);
 void checkCMDDownload(char **ptr, int c);
