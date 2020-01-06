@@ -162,7 +162,7 @@ int readAudioFile(char* path, int socket){
 	char buff[255];
 	int fd = open(path, O_RDONLY);
 
-	char file_name[] = "Stuck_In_Nostalgia.mp3";//KILL ME
+//	char file_name[] = "Stuck_In_Nostalgia.mp3";//KILL ME
 
 	printf("PATH: %s\n", path); //KILL ME
 	if(fd < 0){
@@ -201,7 +201,7 @@ int getAudioFile(char* fileName, int socket){
 	//Cal rebre el nom del file primer abans de transferir les dades
 
 	char buffer[255];
-	int bytesReceived = 0;
+	//int bytesReceived = 0;
 
 	int fd = open(fileName, O_WRONLY | O_CREAT, 0644);
 

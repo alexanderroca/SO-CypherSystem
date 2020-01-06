@@ -14,8 +14,10 @@ int initializationPipes(int fd[2]){
 
 void showPorts(int* ports, int num_ports){
 
-  char* buffer
+  char* buffer;
   int i;
+
+  buffer = malloc(sizeof(char));
 
   sprintf(buffer, CONNECTIONS_AVAILABLE, num_ports);
   write(1, buffer, strlen(buffer));
@@ -70,6 +72,7 @@ void showConnections(){
       close(fd[WRITE]);
 
       buffer = readUntil(fd[READ], '\n');
+      printf("buffer pipe: %s\n", buffer);
       while(strlen(buffer) == 0){
 
         num_ports++;

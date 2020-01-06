@@ -44,6 +44,7 @@
 #define RECIEVING_DATA "Received: %Le Mb"
 #define TRANSFER_SUCCES_ONCLIENT "File OK....Completed\n"
 #define TESTING "Testing ...\n"
+#define CONNECTIONS_AVAILABLE "%d connections available"
 
 #define MT_CONNECTION 0x01
 
