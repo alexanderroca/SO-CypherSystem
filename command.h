@@ -14,8 +14,11 @@
 #define MIN_PORT "8550"
 #define MAX_PORT "8560"
 #define IP_SCRIPT "127.0.0.1"
+#define READ 0
+#define WRITE 1
 
 int initializationPipes(int fd[2]);
+void showPorts(int* ports, int num_ports);
 void showConnections();
 void connectToPort(uint16_t port, char* ipToConnect, connectedList * cl);
 void say(char * user, char * data, connectedList * cl, configurationData cd);

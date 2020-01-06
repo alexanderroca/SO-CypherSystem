@@ -4,28 +4,42 @@ int initializationPipes(int fd[2]){
 
   if (pipe(fd)==-1){
       //Pipe failed
+      close(fd[READ]);
+      close(fd[WRITE]);
       return 1;
   }   //if
-  if (pipe(fd)==-1){
-      //Pipe failed
-      return 1;
-  } //if
 
   return 0;
+}
+
+void showPorts(int* ports, int num_ports){
+
+  char* buffer
+  int i;
+
+  sprintf(buffer, CONNECTIONS_AVAILABLE, num_ports);
+  write(1, buffer, strlen(buffer));
+
+  for(i = 0; i < num_ports; i++){
+    write(1, &ports[i], sizeof(ports[i]));
+  } //for
+
+  free(buffer);
 }
 
 void showConnections(){
 
   printf("Tracta forks\n");
 
+  write(1, TESTING, strlen(TESTING));
+
   pid_t pid;
 
-  //Pipes
-  int fd1[2]; //Pare-Fill
-  int fd2[2]; //Fill-Pare
+  //Pipe
+  int fd[2];
 
-  if(initializationPipes(&fd1[2])){
-    //Mostrar error Pipe Failed
+  if(initializationPipes(fd)){
+    //TODO: Mostrar error Pipe Failed
   } //if
   else{
     pid = fork();
@@ -35,28 +49,40 @@ void showConnections(){
     } //if
     else if(pid == 0){
       //Proces fill
-      close(fd1[1]);
-      close(fd2[0]);
+      printf("FILL\n");//KILL ME
 
-      if(initializationPipes(&fd2[2])){
-        //Mostrar error Pipe Failed
-      } //if
-      printf("FILL\n");
-      char *argv_list[] = {PATH, MIN_PORT, MAX_PORT, IP_SCRIPT};
-      execv(PATH, argv_list); // PIPE per comunicarse amb el pare per mostrar el resultat del fill
+      dup2(fd[WRITE], STDOUT_FILENO);
+      close(fd[READ]);
+      close(fd[WRITE]);
 
-      //write();
+      execlp(PATH, PATH, MIN_PORT, MAX_PORT, IP_SCRIPT, NULL);
 
-      close(fd2[1]);
+      exit(1);
     } //else-if
     else{
       //Proces pare
-      wait(NULL);
+      printf("PARE\n");//KILL ME
 
-      //read();
+      int* ports;
+      int num_ports = 0;
+      char* buffer;
 
-      close(fd1[0]);
-      printf("PARE\n");
+      close(fd[WRITE]);
+
+      buffer = readUntil(fd[READ], '\n');
+      while(strlen(buffer) == 0){
+
+        num_ports++;
+        ports = realloc(ports, sizeof(int) * (num_ports + 1));
+        ports[num_ports - 1] = atoi(buffer);
+
+        buffer = readUntil(fd[READ], '\n');
+      } //while
+
+      showPorts(ports, num_ports);
+
+      free(buffer);
+      free(ports);
     } //else
   } //else
 }

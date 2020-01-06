@@ -43,6 +43,7 @@
 #define ERROR_OPENING_FILE "Error opening file\n"
 #define RECIEVING_DATA "Received: %Le Mb"
 #define TRANSFER_SUCCES_ONCLIENT "File OK....Completed\n"
+#define TESTING "Testing ...\n"
 
 #define MT_CONNECTION 0x01
 
