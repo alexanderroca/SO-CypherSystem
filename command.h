@@ -10,12 +10,13 @@
 
 #include "io.h"
 
-#define PATH "show_connections_v2.sh"
+#define PATH "./show_connections_v2.sh"
+#define NAME_SCRIPT "show_connections_v2.sh"
 #define MIN_PORT "8550"
 #define MAX_PORT "8560"
 #define IP_SCRIPT "127.0.0.1"
-#define READ 0
-#define WRITE 1
+#define READ_PIPE 0
+#define WRITE_PIPE 1
 
 int initializationPipes(int fd[2]);
 void showPorts(int* ports, int num_ports);

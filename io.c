@@ -781,9 +781,6 @@ void checkCMDShow(char **ptr, int c, configurationData cd){
 
 				write(1, ERR_2MANYARGS, strlen(ERR_2MANYARGS));
 			}else{
-
-				sprintf(buffer_aux, "Showing connections of %d connections\n", cd.numConnections);//KILL ME
-				write(1, buffer_aux, strlen(buffer_aux));//KILL ME
 				showConnections();
 			}//else
 		}else{

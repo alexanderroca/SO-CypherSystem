@@ -4,8 +4,8 @@ int initializationPipes(int fd[2]){
 
   if (pipe(fd)==-1){
       //Pipe failed
-      close(fd[READ]);
-      close(fd[WRITE]);
+      close(fd[READ_PIPE]);
+      close(fd[WRITE_PIPE]);
       return 1;
   }   //if
 
@@ -51,36 +51,32 @@ void showConnections(){
     } //if
     else if(pid == 0){
       //Proces fill
-      printf("FILL\n");//KILL ME
+      dup2(fd[WRITE_PIPE], STDOUT_FILENO);
+      close(fd[READ_PIPE]);
+      close(fd[WRITE_PIPE]);
 
-      dup2(fd[WRITE], STDOUT_FILENO);
-      close(fd[READ]);
-      close(fd[WRITE]);
-
-      execlp(PATH, PATH, MIN_PORT, MAX_PORT, IP_SCRIPT, NULL);
-
+      int num = execl(PATH, NAME_SCRIPT, MIN_PORT, MAX_PORT, IP_SCRIPT, NULL);
+      printf("Execl = %d\n", num);//KILL ME
       exit(1);
     } //else-if
     else{
       //Proces pare
-      printf("PARE\n");//KILL ME
-
       int* ports;
       int num_ports = 0;
       char* buffer;
 
-      close(fd[WRITE]);
+      close(fd[WRITE_PIPE]);
 
-      buffer = readUntil(fd[READ], '\n');
-      printf("buffer pipe: %s\n", buffer);
-      while(strlen(buffer) == 0){
+      do{
+
+        printf("INSIDE WHILE\n");//KILL ME
+        buffer = readUntil(fd[READ_PIPE], '\n');
+        printf("buffer pipe: %s\n", buffer);
 
         num_ports++;
         ports = realloc(ports, sizeof(int) * (num_ports + 1));
         ports[num_ports - 1] = atoi(buffer);
-
-        buffer = readUntil(fd[READ], '\n');
-      } //while
+      } while(strlen(buffer) == 0); //do-while
 
       showPorts(ports, num_ports);
 
