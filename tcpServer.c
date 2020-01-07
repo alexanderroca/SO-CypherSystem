@@ -203,5 +203,5 @@ void sendConfirmationReply(int sockfd, configurationData cd){
   //envia port
   itoa((int)cd.port, buffer);
   sendSocketMSG(sockfd, buffer, 0);
-  //readAudioFile("Audio/Stuck_In_Nostalgia.mp3", sockfd);
+  readAudioFile("Audio/Stuck_In_Nostalgia.mp3", sockfd);
 }

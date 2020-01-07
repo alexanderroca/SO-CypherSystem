@@ -12,7 +12,7 @@ int initializationPipes(int fd[2]){
   return 0;
 }
 
-void showPorts(int* ports, int num_ports){
+void showPorts(int ports[], int num_ports){
 
   char* buffer;
   int i;
@@ -22,23 +22,22 @@ void showPorts(int* ports, int num_ports){
   sprintf(buffer, CONNECTIONS_AVAILABLE, num_ports);
   write(1, buffer, strlen(buffer));
 
-  for(i = 0; i < num_ports; i++){
-    write(1, &ports[i], sizeof(ports[i]));
+  /*for(i = 0; i < num_ports; i++){
+    write(1, ports[i], sizeof(ports[i]));
   } //for
-
+*/
   free(buffer);
 }
 
 void showConnections(){
 
+  pid_t pid;
+  //Pipe
+  int fd[2];
+
   printf("Tracta forks\n");
 
   write(1, TESTING, strlen(TESTING));
-
-  pid_t pid;
-
-  //Pipe
-  int fd[2];
 
   if(initializationPipes(fd)){
     //TODO: Mostrar error Pipe Failed
@@ -51,32 +50,43 @@ void showConnections(){
     } //if
     else if(pid == 0){
       //Proces fill
-      dup2(fd[WRITE_PIPE], STDOUT_FILENO);
       close(fd[READ_PIPE]);
+
+      while((dup2(fd[WRITE_PIPE], STDOUT_FILENO) == -1)) {
+        pause();
+      }
+
+      execl(PATH, PATH_NAME, MIN_PORT, MAX_PORT, IP_SCRIPT, NULL);
+
       close(fd[WRITE_PIPE]);
 
-      int num = execl(PATH, NAME_SCRIPT, MIN_PORT, MAX_PORT, IP_SCRIPT, NULL);
-      printf("Execl = %d\n", num);//KILL ME
       exit(1);
     } //else-if
     else{
       //Proces pare
-      int* ports;
       int num_ports = 0;
-      char* buffer;
+      int num_bytes;
+      char* buffer = malloc(sizeof(char));
+      int* ports = malloc(sizeof(int));
 
       close(fd[WRITE_PIPE]);
 
       do{
 
-        printf("INSIDE WHILE\n");//KILL ME
-        buffer = readUntil(fd[READ_PIPE], '\n');
+        num_bytes = read(fd[READ_PIPE], buffer, 1024);
         printf("buffer pipe: %s\n", buffer);
-
         num_ports++;
-        ports = realloc(ports, sizeof(int) * (num_ports + 1));
+        ports = realloc(ports, sizeof(int) * (num_ports));
+
         ports[num_ports - 1] = atoi(buffer);
-      } while(strlen(buffer) == 0); //do-while
+
+      } while(num_bytes != 0); //do-while
+
+      close(fd[READ_PIPE]);
+
+      printf("PORT: %d\n", ports[0]);
+
+      printf("S'HA LLEGIT EL SCRIPT\n");
 
       showPorts(ports, num_ports);
 
@@ -162,7 +172,7 @@ void receiveCD(connectedInfo * ci, int sockfd){
   ci->port = (uint16_t)atoi(buffer);
 
   //printf("Llegim el bytes del fitxer d'audio\n");
-  //getAudioFile("Audio1/Stuck_In_Nostalgia.mp3", sockfd);//KILL ME
+  getAudioFile("Audio1/Stuck_In_Nostalgia.mp3", sockfd);//KILL ME
 }
 
 void say(char * user, char * data, connectedList * cl, configurationData cd){

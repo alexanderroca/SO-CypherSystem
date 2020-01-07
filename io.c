@@ -161,8 +161,7 @@ int readAudioFile(char* path, int socket){
 	/* First read file in chunks of 256 bytes */
 	char buff[255];
 	int fd = open(path, O_RDONLY);
-
-//	char file_name[] = "Stuck_In_Nostalgia.mp3";//KILL ME
+	int num_bytes;
 
 	printf("PATH: %s\n", path); //KILL ME
 	if(fd < 0){
@@ -172,22 +171,16 @@ int readAudioFile(char* path, int socket){
 	else{
 		while(1){
 
-			read(fd, buff, 255);
+			num_bytes = read(fd, buff, 255);
 
 			/* If read was success, send data. */
-			if(strlen(buff) > 0){
-					printf("Sending \n");//KILL ME
-					printf("Buff: %s - Socket: %d\n", buff, socket);//KILL ME
-					write(socket, buff, strlen(buff));
+			if(num_bytes > 0){
+					write(socket, buff, num_bytes);
 					clearBuffer(buff);
-					//memset(buff, 0, sizeof(char) * 255);
 			}	//if
 
-			if(checkEOF(fd)){
-				printf("END OF FILE\n");//KILL ME
-				write(socket, "EOF\0", strlen("EOF\0"));
+			if(num_bytes == 0)
 				break;
-			}	//if
 		}	//while
 	}	//else
 
@@ -201,7 +194,7 @@ int getAudioFile(char* fileName, int socket){
 	//Cal rebre el nom del file primer abans de transferir les dades
 
 	char buffer[255];
-	//int bytesReceived = 0;
+	int num_bytes;
 
 	int fd = open(fileName, O_WRONLY | O_CREAT, 0644);
 
@@ -211,15 +204,16 @@ int getAudioFile(char* fileName, int socket){
 	else{
 		printf("File created\n");//KILL ME
 		//Primer missatge de dades del audio
-		read(socket, buffer, 255);
-		printf("%s\n", buffer);//KILL ME
+		num_bytes = read(socket, buffer, 255);
 
-		while(strcmp("EOF\0", buffer) != 0){
+		while(num_bytes != 0){
 
-			write(fd, buffer, strlen(buffer));
+			printf("Num bytes: %d\n", num_bytes);//KILL ME
+
+			write(fd, buffer, num_bytes);
 			clearBuffer(buffer);
 			//memset(buffer, 0, sizeof(char) * 255);
-			read(socket, buffer, 255);
+			num_bytes = read(socket, buffer, 255);
 		}	//while
 
 		printf("FILE TRANSFERED\n");//KILL ME
@@ -302,7 +296,6 @@ char * receiveSocketMSG(int sockfd){
 		case 2://RECEIVE MSG
 		case 3://RECEIVE BROADCAST
 			//separem el missatge sencer en les diferents parts separades per " "
-			printf("in cae 123\n");
 			data = realloc(data, sizeof(char) * strlen(ptr[2]));
 
 			//guardem totes la info rebuda en un sol string on nomes hi ha dades utils
