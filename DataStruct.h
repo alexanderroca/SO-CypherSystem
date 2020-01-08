@@ -15,7 +15,7 @@
 
 //defines tcpServer
 #define PORT 8550
-#define WELCOME "Starting trinity...\n"
+#define WELCOME "\nStarting trinity...\n\n"
 #define USERCLIENT "$%s: "
 
 //defines for io.c
@@ -45,6 +45,10 @@
 #define TRANSFER_SUCCES_ONCLIENT "File OK....Completed\n"
 #define TESTING "Testing ...\n"
 #define CONNECTIONS_AVAILABLE "%d connections available\n"
+#define PIPE_NOT_CREATED "Pipe couldn't be created\n"
+#define FORK_NOT_CREATED "Fork couldn't be created\n"
+#define FILE_TRANSFER_KO "Transfer corrupted\n"
+#define FILE_TRANSFER_OK "[%s] %s downloaded\n"
 
 #define MT_CONNECTION 0x01
 
@@ -85,7 +89,6 @@
 //defines for main.c
 #define FILE_NOT_FOUND_ERR "Error, invalid path\n"
 #define ERR_ARGUMENTS "ERROR, invalid arguments\n"
-#define STARTUP "Starting Trinity...\n"
 
 //defines for command.c
 #define SEND_MSG "[%s] %s"

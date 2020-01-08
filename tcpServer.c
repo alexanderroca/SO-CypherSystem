@@ -15,7 +15,7 @@ int serverClient(configurationData cd){
   Clients clients;
   pthread_t t_client, t_server;
   int estat = 0;
-  ThreadServer ts;  //Posar-ho en una memoria compartida
+  ThreadServer ts;
   //semaphore sem_clientServer;
 
   clients = initializationClients();
@@ -52,8 +52,6 @@ int serverClient(configurationData cd){
 
 //Usuari com a client
 void *userAsClient(void *arg){
-
-  write(1, "Soc client\n", strlen("Soc client\n"));
 
   //semaphore sem_clientServer;
   configurationData *cd = (configurationData *) arg;
@@ -127,11 +125,6 @@ void *userAsServer(void *arg){
   pthread_t t_dedicatedServer;
 
   ThreadServer *ts = (ThreadServer *) arg;
-  write(1, "Soc server\n", strlen("Soc server\n")); //KILL ME
-
-  printf("PORT: %d\n", ts->cd.port);//KILL ME
-
-  //semaphore sem_clientServer;
 
   int sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
   if(sockfd < 0){
@@ -149,14 +142,7 @@ void *userAsServer(void *arg){
     return (void *) -1;
   } //if
 
-  //SEM_constructor_with_name(&sem_clientServer, ftok("tcpServer.c", atoi("clientServer")));
-
-  //Falta incloure semafors, zona critica a l'hora d'escoltar com a server a transmetre com a client
-  //while(1){
-    //SEM_wait(&sem_clientServer);
-    listen(sockfd, 5);
-    //SEM_signal(&sem_clientServer);
-//  } //while
+  listen(sockfd, 5);
 
   while(1){
     struct sockaddr_in c_addr;
@@ -203,5 +189,5 @@ void sendConfirmationReply(int sockfd, configurationData cd){
   //envia port
   itoa((int)cd.port, buffer);
   sendSocketMSG(sockfd, buffer, 0);
-  readAudioFile("Audio/Stuck_In_Nostalgia.mp3", sockfd);
+  readAudioFile("Audio/Hymn of the Soviet Union - Russian Red Army Choir.mp3", sockfd);
 }

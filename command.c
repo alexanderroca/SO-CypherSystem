@@ -1,34 +1,5 @@
 #include "command.h"
 
-int initializationPipes(int fd[2]){
-
-  if (pipe(fd)==-1){
-      //Pipe failed
-      close(fd[READ_PIPE]);
-      close(fd[WRITE_PIPE]);
-      return 1;
-  }   //if
-
-  return 0;
-}
-
-void showPorts(int ports[], int num_ports){
-
-  char* buffer;
-  int i;
-
-  buffer = malloc(sizeof(char));
-
-  sprintf(buffer, CONNECTIONS_AVAILABLE, num_ports);
-  write(1, buffer, strlen(buffer));
-
-  /*for(i = 0; i < num_ports; i++){
-    write(1, ports[i], sizeof(ports[i]));
-  } //for
-*/
-  free(buffer);
-}
-
 void showConnections(){
 
   pid_t pid;
@@ -40,23 +11,23 @@ void showConnections(){
   write(1, TESTING, strlen(TESTING));
 
   if(initializationPipes(fd)){
-    //TODO: Mostrar error Pipe Failed
+    //Mostrar error Pipe Failed
+    write(1, PIPE_NOT_CREATED, strlen(PIPE_NOT_CREATED));
   } //if
   else{
     pid = fork();
 
     if(pid == -1){
       //Tractar error a l'hora de crear el fork
+      write(1, FORK_NOT_CREATED, strlen(FORK_NOT_CREATED));
     } //if
     else if(pid == 0){
       //Proces fill
       close(fd[READ_PIPE]);
 
-      while((dup2(fd[WRITE_PIPE], STDOUT_FILENO) == -1)) {
-        pause();
-      }
+      dup2(fd[WRITE_PIPE], STDOUT_FILENO);
 
-      execl(PATH, PATH_NAME, MIN_PORT, MAX_PORT, IP_SCRIPT, NULL);
+      execlp(PATH, PATH, MIN_PORT, MAX_PORT, IP_SCRIPT, NULL);
 
       close(fd[WRITE_PIPE]);
 
@@ -71,16 +42,12 @@ void showConnections(){
 
       close(fd[WRITE_PIPE]);
 
-      do{
+      num_bytes = read(fd[READ_PIPE], buffer, 1024);
+      printf("buffer pipe: %s\n", buffer);
+      num_ports++;
+      ports = realloc(ports, sizeof(int) * (num_ports));
 
-        num_bytes = read(fd[READ_PIPE], buffer, 1024);
-        printf("buffer pipe: %s\n", buffer);
-        num_ports++;
-        ports = realloc(ports, sizeof(int) * (num_ports));
-
-        ports[num_ports - 1] = atoi(buffer);
-
-      } while(num_bytes != 0); //do-while
+      ports[num_ports - 1] = atoi(buffer);
 
       close(fd[READ_PIPE]);
 
@@ -172,7 +139,7 @@ void receiveCD(connectedInfo * ci, int sockfd){
   ci->port = (uint16_t)atoi(buffer);
 
   //printf("Llegim el bytes del fitxer d'audio\n");
-  getAudioFile("Audio1/Stuck_In_Nostalgia.mp3", sockfd);//KILL ME
+  getAudioFile("Hymn of the Soviet Union - Russian Red Army Choir.mp3", ci->audioDirectory, sockfd, ci->userName);//KILL ME
 }
 
 void say(char * user, char * data, connectedList * cl, configurationData cd){
@@ -221,5 +188,24 @@ void broadcast(char * data, connectedList * cl, configurationData cd){
     } //for
   }//else
   //fi_ssemafor
+
+}
+
+void showAudios(char* userName, connectedList connected_list){
+
+  connectedInfo connected_info;
+  char* buffer = malloc(sizeof(char));
+
+  connected_info = checkUserConnnected(userName, connected_list);
+  if(connected_info.socket == 0){
+    sprintf(buffer, USER_NO_CONNECTED, userName);
+    write(1, buffer, strlen(buffer));
+  } //if
+  else{
+    //llegir directori d'audios
+     readDirectoryUserConnected(connected_info.audioDirectory, connected_info.socket);
+  } //else
+
+  free(buffer);
 
 }

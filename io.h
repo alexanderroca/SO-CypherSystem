@@ -4,6 +4,8 @@
 #include "DataStruct.h"
 #include "command.h"
 
+#define MD5SUM "md5sum"
+#define MD5SUM_FAILED "md5sum command error\n"
 #define MD5SUM_COMMAND "md5sum %s"
 
 //
@@ -23,13 +25,23 @@ int readConfigurationFile(char* path, configurationData* cd);
 
 int readAudioFile(char* path, int socket);
 
-int getAudioFile(char* fileName, int socket);
+int getAudioFile(char* fileName, char* directoryUserConnected, int socket, char* usernameConnected);
 
 //general function to send messages via sockets
 int sendSocketMSG(int sockfd, char * data, int type);
 
 //function to recieve data from sockets
 char * receiveSocketMSG(int sockfd);
+
+connectedInfo checkUserConnnected(char* userName, connectedList connected_list);
+
+void replyDirectoryUserConnected(char* directory_name, int socket);
+
+void readDirectoryUserConnected(char* directory_name, int socket);
+
+int initializationPipes(int fd[2]);
+
+void showPorts(int ports[], int num_ports);
 
 //does the initial check for the users command input before calling command
 //specific checking functions

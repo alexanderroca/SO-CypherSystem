@@ -34,8 +34,6 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     } //else
 
-    write(1, STARTUP, strlen(STARTUP));
-
     cd.userName[strlen(cd.userName) - 1] = '\0';
 
     serverClient(cd);

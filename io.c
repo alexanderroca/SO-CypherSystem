@@ -78,25 +78,6 @@ char* readUntil(int fd, char end) {
 	return string;
 }//func
 
-//DEPRECATED?
-char* readUntilNumBytes(int fd, int num) {
-	int i = 0;
-	char c = '\0';
-	char* string = (char*)malloc(sizeof(char));
-
-	while (i < num) {
-		read(fd, &c, sizeof(char));
-		if (i < num) {
-			string = (char*)realloc(string, sizeof(char) * (i + 2));
-			string[i] = c;
-		}
-		i++;
-	}
-
-	string[i - 1] = '\0';
-	return string;
-}
-
 /******************************************************************************
 * <Description>
 * readConfigurationFile reads the configuration.txt file based on the files'
@@ -156,12 +137,64 @@ int readConfigurationFile(char* path, configurationData* cd) {
 
 ///////////////////////////////////WIP/////////////////////////////////////////
 
+char* executeMD5sum(char* file_name){
+
+	char* md5sum = malloc(sizeof(char));
+
+	pid_t pid;
+	//Pipe
+	int fd[2];
+
+	if(initializationPipes(fd)){
+    //Mostrar error Pipe Failed
+		write(1, PIPE_NOT_CREATED, strlen(PIPE_NOT_CREATED));
+  } //if
+	else{
+		pid = fork();
+
+		if(pid == -1){
+			//Tractar error a l'hora de crear el fork
+			write(1, FORK_NOT_CREATED, strlen(FORK_NOT_CREATED));
+		} //if
+		else if(pid == 0){
+			//Proces fill
+			close(fd[READ_PIPE]);
+
+			dup2(fd[WRITE_PIPE], 1);
+
+			execlp(MD5SUM, MD5SUM, file_name, NULL);
+
+			close(fd[WRITE_PIPE]);
+
+			exit(1);
+		} //else-if
+		else{
+			//Proces pare
+			int num_bytes;
+			char* buffer = malloc(sizeof(char));
+
+			close(fd[WRITE_PIPE]);
+
+			do{
+				num_bytes = read(fd[READ_PIPE], buffer, 1024);
+			} while(num_bytes != 0); //do-while
+
+			md5sum = strtok(buffer, " ");
+
+			close(fd[READ_PIPE]);
+		} //else
+	} //else
+
+	return md5sum;
+}
+
 int readAudioFile(char* path, int socket){
 
 	/* First read file in chunks of 256 bytes */
 	char buff[255];
 	int fd = open(path, O_RDONLY);
 	int num_bytes;
+	char* md5sum_file = malloc(sizeof(char));
 
 	printf("PATH: %s\n", path); //KILL ME
 	if(fd < 0){
@@ -169,54 +202,67 @@ int readAudioFile(char* path, int socket){
 		write(1, buffer, strlen(buffer));*/
 	}	//if
 	else{
-		while(1){
+
+		do{
 
 			num_bytes = read(fd, buff, 255);
-
 			/* If read was success, send data. */
 			if(num_bytes > 0){
 					write(socket, buff, num_bytes);
 					clearBuffer(buff);
 			}	//if
+		}while(num_bytes > 0);	//do-while
 
-			if(num_bytes == 0)
-				break;
-		}	//while
+		md5sum_file = executeMD5sum(path);
+
+		if(md5sum_file != NULL)
+			write(socket, md5sum_file, strlen(md5sum_file));
+		else
+			write(1, MD5SUM_FAILED, strlen(MD5SUM_FAILED));
 	}	//else
 
-	/*sprintf(buff, MD5SUM_COMMAND, file_name);
-	system("md5sum filename");*/
 	return 0;
 }
 
-int getAudioFile(char* fileName, int socket){
+int getAudioFile(char* fileName, char* directoryUserConnected, int socket, char* usernameConnected){
 
 	//Cal rebre el nom del file primer abans de transferir les dades
 
 	char buffer[255];
 	int num_bytes;
+	char* md5sum_file;
+	char* path = strcat(directoryUserConnected, "/");
+	path = strcat(path, filename);
 
-	int fd = open(fileName, O_WRONLY | O_CREAT, 0644);
+	int fd = open(path, O_WRONLY | O_CREAT, 0644);
 
 	if(fd < 0){
 		write(1, ERROR_OPENING_FILE, strlen(ERROR_OPENING_FILE));
 	}	//if
 	else{
-		printf("File created\n");//KILL ME
-		//Primer missatge de dades del audio
-		num_bytes = read(socket, buffer, 255);
 
-		while(num_bytes != 0){
-
-			printf("Num bytes: %d\n", num_bytes);//KILL ME
-
+		do{
+			num_bytes = read(socket, buffer, 255);
 			write(fd, buffer, num_bytes);
 			clearBuffer(buffer);
-			//memset(buffer, 0, sizeof(char) * 255);
-			num_bytes = read(socket, buffer, 255);
-		}	//while
+		}	while(num_bytes == 255);	//do-while
 
-		printf("FILE TRANSFERED\n");//KILL ME
+		read(socket, buffer, 255);
+
+		printf("Path: %s\n", path);
+
+		md5sum_file = executeMD5sum(path);
+
+		printf("Buffer: %s\n", buffer);
+		printf("md5sum_file: %s\n", md5sum_file);
+
+		if(strcmp(buffer, md5sum_file) == 0){
+			sprintf(buffer, FILE_TRANSFER_OK, usernameConnected, fileName);
+			write(1, buffer, strlen(buffer));
+		}	//if
+		else
+			write(1, FILE_TRANSFER_KO, strlen(FILE_TRANSFER_KO));
+
 	}	//else
 
 	return 0;
@@ -310,6 +356,7 @@ char * receiveSocketMSG(int sockfd){
 			break;
 		case 4:
 		//SHOW AUDIOS
+			printf("SHOW AUDIOS server\n");
 			break;
 		case 5:
 		//DOWNLOAD AUDIOS
@@ -809,3 +856,118 @@ void checkCMDShow(char **ptr, int c, configurationData cd){
 	free(buffer);
 
 }//func
+
+connectedInfo checkUserConnnected(char* userName, connectedList connected_list){
+  connectedInfo connected_info;
+  int i;
+
+  for(i = 0; i < connected_list.num_connected; i++){
+    if(strcmp(userName, connected_list.info[i].userName) == 0)
+      connected_info = connected_list.info[i];
+  } //for
+
+  return connected_info;
+}
+
+void replyDirectoryUserConnected(char* directory_name, int socket){
+
+  char* buffer = malloc(sizeof(char));
+  pid_t pid;
+  //Pipe
+  int fd[2];
+
+  printf("Tracta forks\n");
+  if(initializationPipes(fd)){
+    //Mostrar error Pipe Failed
+		write(1, PIPE_NOT_CREATED, strlen(PIPE_NOT_CREATED));
+  } //if
+  else{
+    pid = fork();
+
+    if(pid == -1){
+      //Tractar error a l'hora de crear el fork
+			write(1, FORK_NOT_CREATED, strlen(FORK_NOT_CREATED));
+    } //if
+    else if(pid == 0){
+      //Proces fill
+      close(fd[READ_PIPE]);
+
+      dup2(fd[WRITE_PIPE], 1);
+
+      execlp("ls", "ls", directory_name, "-1", NULL);
+
+      close(fd[WRITE_PIPE]);
+
+      exit(1);
+    } //else-if
+    else{
+      //Proces pare
+      int num_bytes;
+
+      close(fd[WRITE_PIPE]);
+
+      num_bytes = read(fd[READ_PIPE], buffer, 1024);
+			printf("Buffer: %s\n", buffer);//KILL ME
+
+      //  write(socket, buffer, num_bytes);
+
+      close(fd[READ_PIPE]);
+
+    } //else
+  } //else
+
+  free(buffer);
+}
+
+void readDirectoryUserConnected(char* directory_name, int socket){
+
+  char* buffer = malloc(sizeof(char));
+  char** files = malloc(sizeof(char*));
+  int num_files = 0;
+  int num_bytes;
+	int i;
+
+  write(socket, directory_name, strlen(directory_name));
+
+  do{
+    num_bytes = read(socket, buffer, 1024);
+    num_files++;
+    files = realloc(files, sizeof(char*) * (num_files + 1));
+    files[num_files - 1] = malloc(sizeof(char));
+    strcpy(files[num_files - 1], buffer);
+    printf("FILE: %s\n", files[num_files - 1]); //KILL ME
+  }while(num_bytes != 0); //do-while
+
+  for(i = 0; i < num_files; i++)
+    free(files[i]);
+  free(files);
+}
+
+int initializationPipes(int fd[2]){
+
+  if (pipe(fd)==-1){
+      //Pipe failed
+      close(fd[READ_PIPE]);
+      close(fd[WRITE_PIPE]);
+      return 1;
+  }   //if
+
+  return 0;
+}
+
+void showPorts(int ports[], int num_ports){
+
+  char* buffer;
+  int i;
+
+  buffer = malloc(sizeof(char));
+
+  sprintf(buffer, CONNECTIONS_AVAILABLE, num_ports);
+  write(1, buffer, strlen(buffer));
+
+  /*for(i = 0; i < num_ports; i++){
+    write(1, ports[i], sizeof(ports[i]));
+  } //for
+*/
+  free(buffer);
+}
