@@ -7,7 +7,8 @@
 #include <sys/shm.h>
 #include <sys/stat.h>
 #include <sys/ipc.h>
-//#include "semaphore_v2.h"
+#include <sys/types.h>
+
 
 #include "command.h"
 #include "io.h"

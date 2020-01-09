@@ -37,7 +37,7 @@ connectedInfo checkUserConnnected(char* userName, connectedList connected_list);
 
 void replyDirectoryUserConnected(char* directory_name, int socket);
 
-void readDirectoryUserConnected(char* directory_name, int socket);
+void readDirectoryUserConnected(int socket);
 
 int initializationPipes(int fd[2]);
 

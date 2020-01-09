@@ -12,6 +12,7 @@
 
 #define PATH "./show_connections_v2.sh"
 #define PATH_NAME "show_connections_v2.sh"
+#define PATH_NAME "show_connections_v2.sh"
 #define MIN_PORT "8550"
 #define MAX_PORT "8560"
 #define IP_SCRIPT "127.0.0.1"

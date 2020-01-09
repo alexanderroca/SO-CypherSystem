@@ -232,7 +232,7 @@ int getAudioFile(char* fileName, char* directoryUserConnected, int socket, char*
 	int num_bytes;
 	char* md5sum_file;
 	char* path = strcat(directoryUserConnected, "/");
-	path = strcat(path, filename);
+	path = strcat(path, fileName);
 
 	int fd = open(path, O_WRONLY | O_CREAT, 0644);
 
@@ -909,7 +909,9 @@ void replyDirectoryUserConnected(char* directory_name, int socket){
       num_bytes = read(fd[READ_PIPE], buffer, 1024);
 			printf("Buffer: %s\n", buffer);//KILL ME
 
-      //  write(socket, buffer, num_bytes);
+      write(socket, buffer, num_bytes);
+
+			sendSocketMSG(socket, buffer, 4);
 
       close(fd[READ_PIPE]);
 
@@ -919,28 +921,38 @@ void replyDirectoryUserConnected(char* directory_name, int socket){
   free(buffer);
 }
 
-void readDirectoryUserConnected(char* directory_name, int socket){
+void readDirectoryUserConnected(int socket){
 
   char* buffer = malloc(sizeof(char));
+	char* aux;
   char** files = malloc(sizeof(char*));
-  int num_files = 0;
-  int num_bytes;
+	int c;
+
+	sendSocketMSG(socket, " ", 4);
+
+	buffer = receiveSocketMSG(socket);
+
+	//Llegim l'input de l'usuari i el guardem paraula a paraula a ptr
+	for (c = 0, aux = strtok (user_input, " ");
+					aux != NULL; aux = strtok (NULL, " "), c++){
+
+		files = realloc (files, sizeof (char *) * (c + 2));
+		files[c] = aux;
+	}
+
+	showAudioFiles(files, c);
+
+  free(files);
+	free(buffer);
+}
+
+void showAudioFiles(char** files, int num_files){
+
 	int i;
 
-  write(socket, directory_name, strlen(directory_name));
-
-  do{
-    num_bytes = read(socket, buffer, 1024);
-    num_files++;
-    files = realloc(files, sizeof(char*) * (num_files + 1));
-    files[num_files - 1] = malloc(sizeof(char));
-    strcpy(files[num_files - 1], buffer);
-    printf("FILE: %s\n", files[num_files - 1]); //KILL ME
-  }while(num_bytes != 0); //do-while
-
-  for(i = 0; i < num_files; i++)
-    free(files[i]);
-  free(files);
+	for(i = 0; i < num_files; i++){
+		write(1, files[i], strlen(files[i]));
+	}
 }
 
 int initializationPipes(int fd[2]){

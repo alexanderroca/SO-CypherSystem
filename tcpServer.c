@@ -1,5 +1,7 @@
 #include "tcpServer.h"
 
+sem_t mutexExclusioUserConnect;
+
 Clients initializationClients(){
 
   Clients clients;
@@ -17,6 +19,8 @@ int serverClient(configurationData cd){
   int estat = 0;
   ThreadServer ts;
   //semaphore sem_clientServer;
+
+  replyDirectoryUserConnected("Audio", 0);
 
   clients = initializationClients();
 
@@ -124,6 +128,8 @@ void *userAsServer(void *arg){
 
   pthread_t t_dedicatedServer;
 
+  sem_init(&mutexExclusioUserConnect, 0, 1);
+
   ThreadServer *ts = (ThreadServer *) arg;
 
   int sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -158,6 +164,7 @@ void *userAsServer(void *arg){
     } //if
     else{
       //Posar semafor
+      sem_wait(&mutexExclusioUserConnect);
       ts->clients.sockets[ts->clients.num_sockets].socket = newsock;
       printf("File descriptor socket: %d ", ts->clients.sockets[ts->clients.num_sockets].socket);
       ts->clients.num_sockets++;
@@ -168,6 +175,7 @@ void *userAsServer(void *arg){
       sendConfirmationReply(newsock, ts->cd);
       pthread_create(&t_dedicatedServer, NULL, dedicatedServer, &ts->clients.sockets[ts->clients.num_sockets - 1]); //Creacio del thread del nou client, cal passar ts al thread
       //Fins aqui
+      sem_post(&mutexExclusioUserConnect); //Falta destruir el semafor quan es fa exit o Ctrl-C
     } //else
   }//While(1)
 

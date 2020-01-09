@@ -12,6 +12,7 @@
 #include <ctype.h>
 #include <assert.h>
 #include <sys/wait.h>
+#include <semaphore.h>
 
 //defines tcpServer
 #define PORT 8550
@@ -49,6 +50,7 @@
 #define FORK_NOT_CREATED "Fork couldn't be created\n"
 #define FILE_TRANSFER_KO "Transfer corrupted\n"
 #define FILE_TRANSFER_OK "[%s] %s downloaded\n"
+#define SHOW_USER_AUDIO "[%s] Audios\n"
 
 #define MT_CONNECTION 0x01
 

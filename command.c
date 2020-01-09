@@ -1,5 +1,7 @@
 #include "command.h"
 
+sem_t mutexExclusioBroadcast;
+
 void showConnections(){
 
   pid_t pid;
@@ -27,7 +29,7 @@ void showConnections(){
 
       dup2(fd[WRITE_PIPE], STDOUT_FILENO);
 
-      execlp(PATH, PATH, MIN_PORT, MAX_PORT, IP_SCRIPT, NULL);
+      execlp(PATH_NAME, PATH, MIN_PORT, MAX_PORT, IP_SCRIPT, NULL);
 
       close(fd[WRITE_PIPE]);
 
@@ -188,7 +190,6 @@ void broadcast(char * data, connectedList * cl, configurationData cd){
     } //for
   }//else
   //fi_ssemafor
-
 }
 
 void showAudios(char* userName, connectedList connected_list){
@@ -203,7 +204,9 @@ void showAudios(char* userName, connectedList connected_list){
   } //if
   else{
     //llegir directori d'audios
-     readDirectoryUserConnected(connected_info.audioDirectory, connected_info.socket);
+    sprintf(buffer, SHOW_USER_AUDIO, userName);
+    write(1, buffer, strlen(buffer));
+    readDirectoryUserConnected(connected_info.socket);
   } //else
 
   free(buffer);
