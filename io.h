@@ -9,6 +9,8 @@
 #define MD5SUM_COMMAND "md5sum %s"
 
 //
+void fixStrings(configurationData * cd);
+//
 void itoa(int n, char* s);
 //
 void reverse(char* s);
@@ -31,15 +33,19 @@ int getAudioFile(char* fileName, char* directoryUserConnected, int socket, char*
 int sendSocketMSG(int sockfd, char * data, int type);
 
 //function to recieve data from sockets
-char * receiveSocketMSG(int sockfd);
+char * receiveSocketMSG(int sockfd, int * type);
 
 connectedInfo checkUserConnnected(char* userName, connectedList connected_list);
 
 void replyDirectoryUserConnected(char* directory_name, int socket);
 
+void createAudioListMSG(char * list);
+
 void readDirectoryUserConnected(int socket);
 
 int initializationPipes(int fd[2]);
+
+void showAudioFiles(char** files, int num_files);
 
 void showPorts(int ports[], int num_ports);
 
@@ -59,7 +65,7 @@ void checkCMDConnect(char **ptr, int c, connectedList * cl);
 void checkCMDSay(char **ptr, int c, connectedList * cl, configurationData cd);
 void checkCMDBroadcast(char **ptr, int c, connectedList * cl, configurationData cd);
 void checkCMDDownload(char **ptr, int c);
-void checkCMDShow(char **ptr, int c, configurationData cd);
+void checkCMDShow(char **ptr, int c, configurationData cd, connectedList * cl);
 
 //makes the checks to see if the exit command has been correctly entered
 int checkCMDExit(int c);

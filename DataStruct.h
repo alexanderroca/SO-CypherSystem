@@ -51,6 +51,7 @@
 #define FILE_TRANSFER_KO "Transfer corrupted\n"
 #define FILE_TRANSFER_OK "[%s] %s downloaded\n"
 #define SHOW_USER_AUDIO "[%s] Audios\n"
+#define AUDIO_LIST_TITLE "\n------Audios Found------\n"
 
 #define MT_CONNECTION 0x01
 
@@ -85,6 +86,9 @@
 #define H_MD5OK "[MD5OK]"
 #define H_MD5KO "[MD5KO]"
 #define H_EOF "[EOF]"
+
+//other defines
+#define FILL_SHOWAUDIO "Show Audio Requested\n"
 
 ////////////////////////////////////////////////////////////////////////////////
 

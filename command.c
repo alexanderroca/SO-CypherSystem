@@ -1,7 +1,5 @@
 #include "command.h"
 
-sem_t mutexExclusioBroadcast;
-
 void showConnections(){
 
   pid_t pid;
@@ -29,7 +27,7 @@ void showConnections(){
 
       dup2(fd[WRITE_PIPE], STDOUT_FILENO);
 
-      execlp(PATH_NAME, PATH, MIN_PORT, MAX_PORT, IP_SCRIPT, NULL);
+      execlp(PATH, PATH, MIN_PORT, MAX_PORT, IP_SCRIPT, NULL);
 
       close(fd[WRITE_PIPE]);
 
@@ -38,13 +36,13 @@ void showConnections(){
     else{
       //Proces pare
       int num_ports = 0;
-      int num_bytes;
+      //int num_bytes = 0;
       char* buffer = malloc(sizeof(char));
       int* ports = malloc(sizeof(int));
 
       close(fd[WRITE_PIPE]);
 
-      num_bytes = read(fd[READ_PIPE], buffer, 1024);
+      //num_bytes = read(fd[READ_PIPE], buffer, 1024);
       printf("buffer pipe: %s\n", buffer);
       num_ports++;
       ports = realloc(ports, sizeof(int) * (num_ports));
@@ -124,25 +122,30 @@ void connectToPort(uint16_t portToConnect, char* ipToConnect, connectedList * cl
   //sprintf(buffer, "%d connected: %s\n", portToConnect, cd.userName);
   //write(1, buffer, strlen(buffer));
 
-}
+}//func
 
 void receiveCD(connectedInfo * ci, int sockfd){
   char* buffer;
+  int type = 8;
 
+  buffer = (char*)malloc(sizeof(char));
   ci->socket = sockfd;
 
-  ci->userName = receiveSocketMSG(sockfd);
+  ci->userName = receiveSocketMSG(sockfd, &type);
 
-  ci->audioDirectory = receiveSocketMSG(sockfd);
+  ci->audioDirectory = receiveSocketMSG(sockfd, &type);
 
-  ci->ip = receiveSocketMSG(sockfd);
+  ci->ip = receiveSocketMSG(sockfd, &type);
 
-  buffer = receiveSocketMSG(sockfd);
+  buffer = receiveSocketMSG(sockfd, &type);
   ci->port = (uint16_t)atoi(buffer);
 
+  printf("type post receive == %d\n", type);//KILL ME
+
   //printf("Llegim el bytes del fitxer d'audio\n");
-  getAudioFile("Hymn of the Soviet Union - Russian Red Army Choir.mp3", ci->audioDirectory, sockfd, ci->userName);//KILL ME
-}
+
+  //getAudioFile("Hymn of the Soviet Union - Russian Red Army Choir.mp3", ci->audioDirectory, sockfd, ci->userName);//KILL ME
+}//func
 
 void say(char * user, char * data, connectedList * cl, configurationData cd){
   int i, found = 0;
@@ -190,7 +193,7 @@ void broadcast(char * data, connectedList * cl, configurationData cd){
     } //for
   }//else
   //fi_ssemafor
-}
+}//func
 
 void showAudios(char* userName, connectedList connected_list){
 
@@ -204,11 +207,8 @@ void showAudios(char* userName, connectedList connected_list){
   } //if
   else{
     //llegir directori d'audios
-    sprintf(buffer, SHOW_USER_AUDIO, userName);
-    write(1, buffer, strlen(buffer));
-    readDirectoryUserConnected(connected_info.socket);
+     readDirectoryUserConnected(connected_info.socket);
   } //else
 
   free(buffer);
-
-}
+}//func

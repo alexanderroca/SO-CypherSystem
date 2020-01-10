@@ -20,7 +20,7 @@ int serverClient(configurationData cd){
   ThreadServer ts;
   //semaphore sem_clientServer;
 
-  replyDirectoryUserConnected("Audio", 0);
+  //replyDirectoryUserConnected("Audio", 0);
 
   clients = initializationClients();
 
@@ -97,7 +97,8 @@ void *userAsClient(void *arg){
 //Servidor dedicat per client connectat al serverClient
 void *dedicatedServer(void *arg){
   int connected = 1;
-  char * message;
+  int msg_type = 0;
+  char * message = NULL;
   char * show_message;
   char * client_name;
 
@@ -110,18 +111,36 @@ void *dedicatedServer(void *arg){
   printf("Num socket: %d\n", cd->socket); //KILL ME
 
   while (connected) {
-    message = receiveSocketMSG(cd->socket);
-    printf("post msg received\n");//KILL ME
-    write(1, message, strlen(message));
-    write(1, "\n", strlen("\n"));
-    write(1, client_name, strlen(client_name));
-    clearBuffer(message);
+    message = receiveSocketMSG(cd->socket, &msg_type);
+    DSMsgHandler(message, msg_type, client_name, cd);
   }
 
   free(show_message);
+  free(message);
 
   return NULL;
 }
+
+void DSMsgHandler(char * message, int type, char * client_name, configurationData * cd){
+
+	switch (type) {
+
+		case 2://MSG
+		case 3://BROADCAST
+			write(1, message, strlen(message));
+			write(1, "\n", strlen("\n"));
+			write(1, client_name, strlen(client_name));
+		break;
+		case 4://SHOW_AUDIOS
+			replyDirectoryUserConnected(cd->audioDirectory, cd->socket);
+      write(1, client_name, strlen(client_name));
+		break;
+		case 5://DOWNLOAD_AUDIOS
+		break;
+    default:
+    break;
+	}//switch
+}//func
 
 //Usuari com a servidor
 void *userAsServer(void *arg){
@@ -171,6 +190,7 @@ void *userAsServer(void *arg){
       printf("- NUM Clients connectats: %d\n", ts->clients.num_sockets);
       ts->clients.sockets = (configurationData*)realloc(ts->clients.sockets, sizeof(int) * (ts->clients.num_sockets + 1));
       ts->clients.sockets[ts->clients.num_sockets - 1].userName = ts->cd.userName;
+      ts->clients.sockets[ts->clients.num_sockets - 1].audioDirectory = ts->cd.audioDirectory;
 
       sendConfirmationReply(newsock, ts->cd);
       pthread_create(&t_dedicatedServer, NULL, dedicatedServer, &ts->clients.sockets[ts->clients.num_sockets - 1]); //Creacio del thread del nou client, cal passar ts al thread
@@ -197,5 +217,5 @@ void sendConfirmationReply(int sockfd, configurationData cd){
   //envia port
   itoa((int)cd.port, buffer);
   sendSocketMSG(sockfd, buffer, 0);
-  readAudioFile("Audio/Hymn of the Soviet Union - Russian Red Army Choir.mp3", sockfd);
+  //readAudioFile("Audio/Hymn of the Soviet Union - Russian Red Army Choir.mp3", sockfd);
 }

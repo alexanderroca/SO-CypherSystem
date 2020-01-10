@@ -1,8 +1,21 @@
 #include "io.h"
 
+void fixStrings(configurationData * cd){
+	cd->userName[strlen(cd->userName) - 1] = '\0';
+	cd->audioDirectory[strlen(cd->audioDirectory) - 1] = '\0';
+	cd->ip[strlen(cd->ip) - 1] = '\0';
+}//func
+
 /******************************************************************************
+* <Description>
+* itoa (integer to ASCII) gets the vale of an integer and converts it to a
+* string.
 *
+* @author: Victor Blasco <victor.blasco@students.salle.url.edu>
+* @version: 2.0
 *
+* @param: n integer that will be converted to string.
+* @param: s string to which the result wil be recorded.
 ******************************************************************************/
 void itoa(int n, char* s){
 		int i, sign;
@@ -17,10 +30,18 @@ void itoa(int n, char* s){
 				s[i++] = '-';
 		s[i] = '\0';
 		reverse(s);
-}
+}//func
+
 /******************************************************************************
+* <Description>
+* reverse gets all the characters in a string and reverses the order in wich
+* they are written (the firs character will be the last, the second one wiil
+* become second to last etc.).
 *
+* @author: Victor Blasco <victor.blasco@students.salle.url.edu>
+* @version: 2.0
 *
+* @param: s string in which the converted integer will be stored
 *****************************************************************************/
 void reverse(char* s){
 		int i, j;
@@ -31,11 +52,16 @@ void reverse(char* s){
 				s[i] = s[j];
 				s[j] = c;
 		}
-}
+}//func
 
 /******************************************************************************
+* <Description>
+* clearBuffer sets all the characters of a given string to '\0'
 *
+* @author: Victor Blasco <victor.blasco@students.salle.url.edu>
+* @version: 2.0
 *
+* @param: buffer char* that requires resetting
 *****************************************************************************/
 void clearBuffer(char* buffer){
 		int i, length;
@@ -45,7 +71,7 @@ void clearBuffer(char* buffer){
 		for (i = 0; i < length; i++) {
 				buffer[i] = '\0';
 		}
-}
+}//func
 
 
 /******************************************************************************
@@ -133,7 +159,7 @@ int readConfigurationFile(char* path, configurationData* cd) {
 		close(fd);
 		return 0;
 	} //else
-}
+}//func
 
 ///////////////////////////////////WIP/////////////////////////////////////////
 
@@ -186,7 +212,7 @@ char* executeMD5sum(char* file_name){
 	} //else
 
 	return md5sum;
-}
+}//func
 
 int readAudioFile(char* path, int socket){
 
@@ -222,7 +248,7 @@ int readAudioFile(char* path, int socket){
 	}	//else
 
 	return 0;
-}
+}//func
 
 int getAudioFile(char* fileName, char* directoryUserConnected, int socket, char* usernameConnected){
 
@@ -266,7 +292,7 @@ int getAudioFile(char* fileName, char* directoryUserConnected, int socket, char*
 	}	//else
 
 	return 0;
-}
+}//func
 
 int sendSocketMSG(int sockfd, char * data, int type){
 	char * message;
@@ -303,8 +329,30 @@ int sendSocketMSG(int sockfd, char * data, int type){
 			write(sockfd, message, strlen(message));
 			break;
 		case 4:
+			//SHOW_AUDIOS
+			printf("in case 4\n");//KILL ME
+			if (data == NULL) {
+
+				printf("in audio list request send\n");
+				length = 0;
+				message = realloc(message, sizeof(char) * (length + strlen(H_SHOWAUDIO) + 10));
+
+				sprintf(message, PROTOCOL_MESSAGE, MT_SHOWAUDIO, H_SHOWAUDIO, length, data);
+				printf("message sent == %s\n", message);
+				write(sockfd, message, strlen(message));
+			}else{
+
+				printf("in list audio send\n");//KILL ME
+				length = strlen(data);
+				message = realloc(message, sizeof(char) * (length + strlen(H_LISTAUDIO) + 10));
+
+				sprintf(message, PROTOCOL_MESSAGE, MT_SHOWAUDIO, H_LISTAUDIO, length, data);
+				printf("message sent == %s\n", message);
+				write(sockfd, message, strlen(message));
+			}//else
 			break;
 		case 5:
+			//DOWNLOAD_AUDIOS
 			break;
 		case 6:
 			break;
@@ -318,12 +366,13 @@ int sendSocketMSG(int sockfd, char * data, int type){
 }//func
 
 
-char * receiveSocketMSG(int sockfd){
-	char * data, * buffer, * aux;
-	int c, num_camps;
+char * receiveSocketMSG(int sockfd, int * type){
+	char * data,* buffer, * aux;
+	int c, num_camps, type_int;
 	char **ptr; //ptr[0] = Type ptr[1] = header ptr[2] = length
 
 	buffer = readUntil(sockfd, '\n');
+	printf("message received-%s\n", buffer);
 	ptr = (char**)malloc(sizeof(char*));
 	data = (char*)malloc(sizeof(char));
 
@@ -334,9 +383,13 @@ char * receiveSocketMSG(int sockfd){
 		ptr[c] = aux;
 	}
 
-	num_camps = c;
 
-	switch (atoi(ptr[1])) {
+	num_camps = c;
+	type_int = atoi(ptr[0]);
+	*type = type_int;
+
+	printf("type int == %d\n", type_int);
+	switch (type_int) {
 
 		case 0://RECEIVE CD
 		case 2://RECEIVE MSG
@@ -356,7 +409,23 @@ char * receiveSocketMSG(int sockfd){
 			break;
 		case 4:
 		//SHOW AUDIOS
-			printf("SHOW AUDIOS server\n");
+			if (strcmp(ptr[1], H_SHOWAUDIO) == 0) {
+
+				printf("in RCV show audio\n");//KILL ME
+				data = realloc(data, sizeof(char) * (strlen(FILL_SHOWAUDIO)));
+				data = FILL_SHOWAUDIO;
+			}else{
+
+				printf("in RCV list audio\n");//KILL ME
+				data = realloc(data, sizeof(char) * atoi(ptr[2]));
+
+				//guardem totes la info rebuda en un sol string on nomes hi ha dades utils
+				data = ptr[3];
+				for (c = 4; c < num_camps; c++) {
+					sprintf(data, "%s %s", data, ptr[c]);
+				}//for
+			}
+
 			break;
 		case 5:
 		//DOWNLOAD AUDIOS
@@ -370,11 +439,14 @@ char * receiveSocketMSG(int sockfd){
 		break;
 	}//switch
 
+	//Alliberem Memoria
+	for (c = 0; c < num_camps; c++) {
+		ptr[c] = NULL;
+	}
 	free(ptr);
 
 	return data;
 }//func
-
 
 /*
 int sendSocketReply(int type, int okko){
@@ -420,7 +492,7 @@ int checkEOF(int fd) {
 	lseek(fd, -1, SEEK_CUR);
 	return 0;
 
-}
+}//func
 
 /******************************************************************************
 * <Description>
@@ -477,7 +549,7 @@ int  checkCommand(char * user_input, configurationData cd, connectedList * cl) {
 					}else{//if exit
 						if (strcasecmp(ptr[0], CMD_SHOW) == 0) {
 
-							checkCMDShow(ptr, c, cd);
+							checkCMDShow(ptr, c, cd, cl);
 						}else{//if show
 
 							write(1, ERR_UNKNOWNCMD, strlen(ERR_UNKNOWNCMD));
@@ -803,7 +875,7 @@ int checkCMDExit(int c){
 * @param: cd configurationData contains all the data needed for the functions
 *					called in checkCMDShow
 ******************************************************************************/
-void checkCMDShow(char **ptr, int c, configurationData cd){
+void checkCMDShow(char **ptr, int c, configurationData cd, connectedList * cl){
 
 	char *user, *buffer;
 	int i;
@@ -842,9 +914,7 @@ void checkCMDShow(char **ptr, int c, configurationData cd){
 						i++;
 					}//while
 
-					sprintf(buffer_aux, "showing audios from user %s\n", user);//KILL ME
-					write(1, buffer_aux, strlen(buffer_aux));//KILL ME
-					//showAudios(user); //TODO: implement function
+					showAudios(user, *cl);
 				}
 			}else{
 
@@ -867,7 +937,7 @@ connectedInfo checkUserConnnected(char* userName, connectedList connected_list){
   } //for
 
   return connected_info;
-}
+}//func
 
 void replyDirectoryUserConnected(char* directory_name, int socket){
 
@@ -877,6 +947,7 @@ void replyDirectoryUserConnected(char* directory_name, int socket){
   int fd[2];
 
   printf("Tracta forks\n");
+	printf("directory_name == %s\n", directory_name);
   if(initializationPipes(fd)){
     //Mostrar error Pipe Failed
 		write(1, PIPE_NOT_CREATED, strlen(PIPE_NOT_CREATED));
@@ -907,9 +978,8 @@ void replyDirectoryUserConnected(char* directory_name, int socket){
       close(fd[WRITE_PIPE]);
 
       num_bytes = read(fd[READ_PIPE], buffer, 1024);
+			createAudioListMSG(buffer);
 			printf("Buffer: %s\n", buffer);//KILL ME
-
-      write(socket, buffer, num_bytes);
 
 			sendSocketMSG(socket, buffer, 4);
 
@@ -919,21 +989,31 @@ void replyDirectoryUserConnected(char* directory_name, int socket){
   } //else
 
   free(buffer);
+}//func
+
+void createAudioListMSG(char * list){
+	unsigned int i = 0;
+
+	for (i = 0; i < strlen(list); i++) {
+		if (list[i] == '\n') {
+			list[i] = ' ';
+		}
+	}
 }
 
 void readDirectoryUserConnected(int socket){
 
-  char* buffer = malloc(sizeof(char));
+  char* buffer;
 	char* aux;
   char** files = malloc(sizeof(char*));
+	int type;
 	int c;
 
-	sendSocketMSG(socket, " ", 4);
+	sendSocketMSG(socket, NULL, 4);
 
-	buffer = receiveSocketMSG(socket);
+	buffer = receiveSocketMSG(socket, &type);
 
-	//Llegim l'input de l'usuari i el guardem paraula a paraula a ptr
-	for (c = 0, aux = strtok (user_input, " ");
+	for (c = 0, aux = strtok (buffer, " ");
 					aux != NULL; aux = strtok (NULL, " "), c++){
 
 		files = realloc (files, sizeof (char *) * (c + 2));
@@ -943,17 +1023,21 @@ void readDirectoryUserConnected(int socket){
 	showAudioFiles(files, c);
 
   free(files);
-	free(buffer);
-}
+}//func
 
 void showAudioFiles(char** files, int num_files){
 
 	int i;
 
+	write(1, AUDIO_LIST_TITLE, strlen(AUDIO_LIST_TITLE));
+
 	for(i = 0; i < num_files; i++){
 		write(1, files[i], strlen(files[i]));
-	}
-}
+		write(1, "\n", 1);
+	}//for
+
+	write(1, "\n", 1);
+}//func
 
 int initializationPipes(int fd[2]){
 
@@ -965,7 +1049,7 @@ int initializationPipes(int fd[2]){
   }   //if
 
   return 0;
-}
+}//func
 
 void showPorts(int ports[], int num_ports){
 
@@ -982,4 +1066,4 @@ void showPorts(int ports[], int num_ports){
   } //for
 */
   free(buffer);
-}
+}//func

@@ -29,4 +29,7 @@ void *userAsClient(void *arg);
 void *userAsServer(void *arg);
 void sendConfirmationReply(int sockfd, configurationData cd);
 
+//function used by dedicated server to handle received messages
+void DSMsgHandler(char * message, int type, char * client_name, configurationData * cd);
+
 #endif
