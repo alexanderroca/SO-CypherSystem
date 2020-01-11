@@ -507,7 +507,7 @@ int checkEOF(int fd) {
 * @param: user_input data recalled from the keyboard as input by the user
 * @param: cd configuration data sed to send info to the functions that need it
 ******************************************************************************/
-int  checkCommand(char * user_input, configurationData cd, connectedList * cl) {
+int  checkCommand(char * user_input, Info * info_client) {
 
 	printf("Inside checkCommand\n");
 
@@ -529,15 +529,15 @@ int  checkCommand(char * user_input, configurationData cd, connectedList * cl) {
 	//mirem la primera paraula llegida i actuem en consequencia
 	if (strcasecmp(ptr[0], CMD_CONNECT) == 0) {
 
-		checkCMDConnect(ptr, c, cl);
+		checkCMDConnect(ptr, c, info_client);
 	}else{//if connect
 		if (strcasecmp(ptr[0], CMD_SAY) == 0) {
 
-			checkCMDSay(ptr, c, cl, cd);
+			checkCMDSay(ptr, c, info_client);
 		}else{//if say
 			if (strcasecmp(ptr[0], CMD_BROADCAST) == 0) {
 
-				checkCMDBroadcast(ptr, c, cl, cd);
+				checkCMDBroadcast(ptr, c, info_client);
 			}else{//if broadcast
 				if (strcasecmp(ptr[0], CMD_DOWNLOAD) == 0) {
 
@@ -549,7 +549,7 @@ int  checkCommand(char * user_input, configurationData cd, connectedList * cl) {
 					}else{//if exit
 						if (strcasecmp(ptr[0], CMD_SHOW) == 0) {
 
-							checkCMDShow(ptr, c, cd, cl);
+							checkCMDShow(ptr, c, info_client);
 						}else{//if show
 
 							write(1, ERR_UNKNOWNCMD, strlen(ERR_UNKNOWNCMD));
@@ -585,7 +585,7 @@ void stringToUpper(char * string) {
 					have been read from user_input
 * @param: c integer that store the number of word in the ptr array.
 ******************************************************************************/
-void checkCMDConnect(char **ptr, int c, connectedList * cl) {
+void checkCMDConnect(char **ptr, int c, Info * info_client) {
 	char buffer[100] = " ";//KILL ME
 
 	if (c != 2) {
@@ -602,7 +602,7 @@ void checkCMDConnect(char **ptr, int c, connectedList * cl) {
 		if (atoi(ptr[1]) != 0) {
 			sprintf(buffer, "connecting to %d\n", atoi(ptr[1]));//KILL ME
 			write(1, buffer, strlen(buffer));//KILL ME
-			connectToPort(atoi(ptr[1]), "127.0.0.1", cl);	//BLASCO -> TRACTA STRING EL PORT QUE ESCRIU CLIENT
+			connectToPort(atoi(ptr[1]), "127.0.0.1", info_client);	//BLASCO -> TRACTA STRING EL PORT QUE ESCRIU CLIENT
 		}else{
 			write(1, ERR_PORT, strlen(ERR_PORT));
 		}//else
@@ -622,7 +622,7 @@ void checkCMDConnect(char **ptr, int c, connectedList * cl) {
 					have been read from user_input
 * @param: c integer that store the number of word in the ptr array.
 ******************************************************************************/
-void checkCMDSay(char **ptr, int c, connectedList * cl, configurationData cd){
+void checkCMDSay(char **ptr, int c, Info * info_client){
 
 	char *user, *message;
 	char * buffer;
@@ -693,7 +693,7 @@ void checkCMDSay(char **ptr, int c, connectedList * cl, configurationData cd){
 
 		sprintf(buffer_aux, "sending %s to user %s\n", message, user);//KILL ME
 		write(1, buffer_aux, strlen(buffer_aux));//KILL ME
-		say(user, message, cl, cd);//TODO: implement function
+		say(user, message, info_client);
 	}//if
 
 	free(buffer);
@@ -713,7 +713,7 @@ void checkCMDSay(char **ptr, int c, connectedList * cl, configurationData cd){
 					have been read from user_input
 * @param: c integer that store the number of word in the ptr array.
 ******************************************************************************/
-void checkCMDBroadcast(char **ptr, int c, connectedList * cl, configurationData cd) {
+void checkCMDBroadcast(char **ptr, int c, Info * info_client) {
 
 	char *message, *buffer;
 	int i, ok;
@@ -761,7 +761,7 @@ void checkCMDBroadcast(char **ptr, int c, connectedList * cl, configurationData 
 
 	if (ok) {
 
-		broadcast(message, cl, cd);
+		broadcast(message, info_client);
 	}//if
 }//func
 
@@ -875,7 +875,7 @@ int checkCMDExit(int c){
 * @param: cd configurationData contains all the data needed for the functions
 *					called in checkCMDShow
 ******************************************************************************/
-void checkCMDShow(char **ptr, int c, configurationData cd, connectedList * cl){
+void checkCMDShow(char **ptr, int c, Info * info_client){
 
 	char *user, *buffer;
 	int i;
@@ -914,7 +914,7 @@ void checkCMDShow(char **ptr, int c, configurationData cd, connectedList * cl){
 						i++;
 					}//while
 
-					showAudios(user, *cl);
+					showAudios(user, info_client);
 				}
 			}else{
 
@@ -927,16 +927,30 @@ void checkCMDShow(char **ptr, int c, configurationData cd, connectedList * cl){
 
 }//func
 
-connectedInfo checkUserConnnected(char* userName, connectedList connected_list){
-  connectedInfo connected_info;
+connectionInfo checkUserConnnected(char* userName, LlistaBid list){
+  connectionInfo ci;
   int i;
+	int found = 0;
 
-  for(i = 0; i < connected_list.num_connected; i++){
-    if(strcmp(userName, connected_list.info[i].userName) == 0)
-      connected_info = connected_list.info[i];
-  } //for
+	if (LLISTABID_esBuida(list)) {
+		write(1, ERR_NOUSERS, strlen(ERR_NOUSERS));
+	}else{
+		LLISTABID_vesInici(&list);
 
-  return connected_info;
+		do {
+			ci = LLISTABID_consulta(list);
+
+			if (strcmp(userName, ci.userName) == 0) {
+				found = 1;
+			}
+		} while(!LLISTABID_fi(list) && !found);
+	}//else
+
+	if (!found) {
+		ci.socket = -1;
+	}//if
+
+  return ci;
 }//func
 
 void replyDirectoryUserConnected(char* directory_name, int socket){
@@ -999,7 +1013,7 @@ void createAudioListMSG(char * list){
 			list[i] = ' ';
 		}
 	}
-}
+}//func
 
 void readDirectoryUserConnected(int socket){
 
@@ -1067,3 +1081,16 @@ void showPorts(int ports[], int num_ports){
 */
   free(buffer);
 }//func
+
+connectionInfo setupCI(configurationData cd){
+	connectionInfo ci;
+
+	ci.socket = -1;
+	ci.userName = cd.userName;
+	ci.audioDirectory = cd.audioDirectory;
+	ci.audioDirectory = cd.audioDirectory;
+	ci.ip = cd.ip;
+	ci.port = cd.port;
+
+	return ci;
+}

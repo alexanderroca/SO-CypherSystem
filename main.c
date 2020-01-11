@@ -8,12 +8,6 @@
 * Victor Blasco Ortuño
 * <victor.blasco@students.salle.url.edu>
 **/
-#include <stdio.h>
-#include <fcntl.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-
 #include "io.h"
 #include "tcpServer.h"
 
@@ -34,7 +28,6 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     } //else
 
-    //fixStrings(&cd);
     serverClient(cd);
 
     return EXIT_SUCCESS;

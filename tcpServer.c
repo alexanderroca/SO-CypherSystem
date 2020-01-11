@@ -2,6 +2,7 @@
 
 sem_t mutexExclusioUserConnect;
 
+//DEPRECATED
 Clients initializationClients(){
 
   Clients clients;
@@ -14,32 +15,38 @@ Clients initializationClients(){
 //Creem dos threads
 int serverClient(configurationData cd){
 
-  Clients clients;
+  //Clients clients;
   pthread_t t_client, t_server;
   int estat = 0;
-  ThreadServer ts;
+  Info info_client, info_server;
+  //ThreadServer ts;
   //semaphore sem_clientServer;
 
   //replyDirectoryUserConnected("Audio", 0);
-
-  clients = initializationClients();
+  //clients = initializationClients();
 
   write(1, WELCOME, strlen(WELCOME));
 
-  ts.clients = clients;
-  ts.cd = cd;
+  info_client.cd = cd;
+  info_server.cd = cd;
+
+  info_client.connections = LLISTABID_crea();
+  info_server.connections = LLISTABID_crea();
+
+  //ts.clients = clients;
+  //ts.cd = cd;
 
   //SEM_constructor_with_name(&sem_clientServer, ftok("tcpServer.c", atoi("clientServer")));
 
   //SEM_init(&sem_clientServer, 1);
 
-  estat = pthread_create(&t_client, NULL, userAsClient, &cd);
+  estat = pthread_create(&t_client, NULL, userAsClient, &info_client);
   if(estat != 0){
     perror("pthread_create");
     return -1;
   }  //if
 
-  estat = pthread_create(&t_server, NULL, userAsServer, &ts);
+  estat = pthread_create(&t_server, NULL, userAsServer, &info_server);
 
   if(estat != 0){
     perror("pthread_create");
@@ -58,27 +65,27 @@ int serverClient(configurationData cd){
 void *userAsClient(void *arg){
 
   //semaphore sem_clientServer;
-  configurationData *cd = (configurationData *) arg;
+  Info * info_client = (Info *) arg;
   char * user_input;
   char * buffer;
   int exit = 0;
-  connectedList connected_list;
+  //connectedList connected_list;
 
-  connected_list.num_connected = 0;
-  connected_list.info = (connectedInfo*)malloc(sizeof(connectedInfo));
-  buffer = (char*)malloc(sizeof(char) * (strlen(cd->userName) + 5));
+  //connected_list.num_connected = 0;
+  //connected_list.info = (connectedInfo*)malloc(sizeof(connectedInfo));
+  buffer = (char*)malloc(sizeof(char) * (strlen(info_client->cd.userName) + 5));
   //SEM_constructor_with_name(&sem_clientServer, ftok("tcpServer.c", atoi("clientServer")));
 
   while (!exit) {
 
     //SEM_wait(&sem_clientServer);
-    sprintf(buffer, "$%s: ", cd->userName);
+    sprintf(buffer, "$%s: ", info_client->cd.userName);
     write(1, buffer, strlen(buffer));
 
     user_input = readUntil(0, '\n');
 
     if (strlen(user_input)) {
-      exit = checkCommand(user_input, *cd, &connected_list);
+      exit = checkCommand(user_input, info_client);
 
     }else{
 
@@ -102,17 +109,17 @@ void *dedicatedServer(void *arg){
   char * show_message;
   char * client_name;
 
-  configurationData *cd = (configurationData *) arg;
+  connectionInfo * ci = (connectionInfo*) arg;
   show_message = (char*)malloc(sizeof(char));
-  client_name = (char*)malloc(sizeof(char) * (strlen(cd->userName) + 5));
-  sprintf(client_name, USERCLIENT, cd->userName);
+  client_name = (char*)malloc(sizeof(char) * (strlen(ci->userName) + 5));
+  sprintf(client_name, USERCLIENT, ci->userName);
 
   write(1, "Soc server dedicat\n", strlen("Soc server dedicat\n")); //KILL ME
-  printf("Num socket: %d\n", cd->socket); //KILL ME
+  printf("Num socket: %d\n", ci->socket); //KILL ME
 
   while (connected) {
-    message = receiveSocketMSG(cd->socket, &msg_type);
-    DSMsgHandler(message, msg_type, client_name, cd);
+    message = receiveSocketMSG(ci->socket, &msg_type);
+    connected = DSMsgHandler(message, msg_type, client_name, ci);
   }
 
   free(show_message);
@@ -121,7 +128,8 @@ void *dedicatedServer(void *arg){
   return NULL;
 }
 
-void DSMsgHandler(char * message, int type, char * client_name, configurationData * cd){
+int DSMsgHandler(char * message, int type, char * client_name, connectionInfo * ci){
+  int connected = 1;//in  message exit turn this to false
 
 	switch (type) {
 
@@ -132,7 +140,7 @@ void DSMsgHandler(char * message, int type, char * client_name, configurationDat
 			write(1, client_name, strlen(client_name));
 		break;
 		case 4://SHOW_AUDIOS
-			replyDirectoryUserConnected(cd->audioDirectory, cd->socket);
+			replyDirectoryUserConnected(ci->audioDirectory, ci->socket);
       write(1, client_name, strlen(client_name));
 		break;
 		case 5://DOWNLOAD_AUDIOS
@@ -140,16 +148,21 @@ void DSMsgHandler(char * message, int type, char * client_name, configurationDat
     default:
     break;
 	}//switch
+
+  return connected;
 }//func
 
 //Usuari com a servidor
 void *userAsServer(void *arg){
 
   pthread_t t_dedicatedServer;
-
   sem_init(&mutexExclusioUserConnect, 0, 1);
+  Info * info_server = (Info *) arg;
+  connectionInfo ci;
+  connectionInfo DS_ci;
+  connectionInfo ci_test;//KILL ME
 
-  ThreadServer *ts = (ThreadServer *) arg;
+  ci = setupCI(info_server->cd);
 
   int sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
   if(sockfd < 0){
@@ -159,7 +172,7 @@ void *userAsServer(void *arg){
   struct sockaddr_in s_addr;
   memset(&s_addr, 0, sizeof(s_addr));
   s_addr.sin_family = AF_INET;
-  s_addr.sin_port = htons(ts->cd.port);
+  s_addr.sin_port = htons(info_server->cd.port);
   s_addr.sin_addr.s_addr = INADDR_ANY;
 
   if(bind(sockfd, (void *) &s_addr, sizeof(s_addr)) < 0){
@@ -183,19 +196,26 @@ void *userAsServer(void *arg){
     } //if
     else{
       //Posar semafor
-      sem_wait(&mutexExclusioUserConnect);
-      ts->clients.sockets[ts->clients.num_sockets].socket = newsock;
-      printf("File descriptor socket: %d ", ts->clients.sockets[ts->clients.num_sockets].socket);
-      ts->clients.num_sockets++;
-      printf("- NUM Clients connectats: %d\n", ts->clients.num_sockets);
-      ts->clients.sockets = (configurationData*)realloc(ts->clients.sockets, sizeof(int) * (ts->clients.num_sockets + 1));
-      ts->clients.sockets[ts->clients.num_sockets - 1].userName = ts->cd.userName;
-      ts->clients.sockets[ts->clients.num_sockets - 1].audioDirectory = ts->cd.audioDirectory;
+      //sem_wait(&mutexExclusioUserConnect);
+      //ts->clients.sockets[ts->clients.num_sockets].socket = newsock;
+      ci.socket = newsock;
+      printf("pre access list\n");
+      LLISTABID_vesFinal(&(info_server->connections));
+      LLISTABID_inserir(&(info_server->connections), ci);
+      ci_test = LLISTABID_consulta(info_server->connections);//KILL ME
 
-      sendConfirmationReply(newsock, ts->cd);
-      pthread_create(&t_dedicatedServer, NULL, dedicatedServer, &ts->clients.sockets[ts->clients.num_sockets - 1]); //Creacio del thread del nou client, cal passar ts al thread
+      printf("File descriptor socket: %d ", ci_test.socket);//KILL ME
+      //ts->clients.num_sockets++;
+      //ts->clients.sockets = (configurationData*)realloc(ts->clients.sockets, sizeof(int) * (ts->clients.num_sockets + 1));
+      //ts->clients.sockets[ts->clients.num_sockets - 1].userName = ts->cd.userName;
+      //ts->clients.sockets[ts->clients.num_sockets - 1].audioDirectory = ts->cd.audioDirectory;
+
+      sendConfirmationReply(newsock, info_server->cd);
+      LLISTABID_vesFinal(&(info_server->connections));
+      DS_ci = LLISTABID_consulta(info_server->connections);
+      pthread_create(&t_dedicatedServer, NULL, dedicatedServer, &DS_ci); //Creacio del thread del nou client, cal passar ts al thread
       //Fins aqui
-      sem_post(&mutexExclusioUserConnect); //Falta destruir el semafor quan es fa exit o Ctrl-C
+      //sem_post(&mutexExclusioUserConnect); //Falta destruir el semafor quan es fa exit o Ctrl-C
     } //else
   }//While(1)
 

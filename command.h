@@ -23,11 +23,11 @@
 int initializationPipes(int fd[2]);
 void showPorts(int* ports, int num_ports);
 void showConnections();
-void connectToPort(uint16_t port, char* ipToConnect, connectedList * cl);
-void say(char * user, char * data, connectedList * cl, configurationData cd);
-void broadcast(char * data, connectedList * cl, configurationData cd);
-void receiveCD(connectedInfo * ci, int sockfd);
-void showAudios(char* userName, connectedList connected_list);
+void connectToPort(uint16_t port, char* ipToConnect, Info * info_client);
+void say(char * user, char * data, Info * info_client);
+void broadcast(char * data, Info * info_client);
+connectionInfo receiveCD(int sockfd);
+void showAudios(char* userName, Info * info_client);
 void download(char* userName, char * audio_file);
 void exit();
 

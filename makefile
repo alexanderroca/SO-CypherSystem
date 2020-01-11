@@ -12,8 +12,11 @@ command.o: command.c command.h io.h
 tcpServer.o: tcpServer.c tcpServer.h command.h
 	gcc tcpServer.c -c -Wall -Wextra
 
-main: main.o io.o command.o tcpServer.o
-	gcc main.o io.o command.o tcpServer.o -o Practica -lpthread -Wall -Wextra
+LlistaBid.o: LlistaBid.c LlistaBid.h DataStruct.h
+	gcc LlistaBid.c -c -Wall -Wextra
+
+main: main.o io.o command.o tcpServer.o LlistaBid.o
+	gcc main.o io.o command.o tcpServer.o LlistaBid.o -o Practica -lpthread -Wall -Wextra
 
 clean:
 	rm *.o

@@ -63,9 +63,10 @@ void showConnections(){
   } //else
 }
 
-void connectToPort(uint16_t portToConnect, char* ipToConnect, connectedList * cl) {
+void connectToPort(uint16_t portToConnect, char* ipToConnect, Info * info_client) {
 
   //configurationData cd;
+  connectionInfo ci;
 
   //Comprovem la validesa del port
   if(portToConnect < atoi(MIN_PORT) && portToConnect > atoi(MAX_PORT)){
@@ -111,62 +112,71 @@ void connectToPort(uint16_t portToConnect, char* ipToConnect, connectedList * cl
     exit(EXIT_FAILURE);
   } //if
 
-  cl->num_connected++;
+  //cl->num_connected++;
   write(1, "Connecting...\n", strlen("Connecting...\n"));
-  receiveCD(&(cl->info[cl->num_connected - 1]), sockfd);
-  printf("socket == %d\n", cl->info[cl->num_connected - 1].socket);
-  printf("user connected %s\n", cl->info[cl->num_connected - 1].userName);//KILL ME
-  printf("audio audioDirectory %s\n", cl->info[cl->num_connected - 1].audioDirectory);//KILL ME
-  printf("ip %s\n", cl->info[cl->num_connected - 1].ip);//KILL ME
-  printf("port %d\n", cl->info[cl->num_connected - 1].port);//KILL ME
+  LLISTABID_vesFinal(&(info_client->connections));
+  ci = receiveCD(sockfd);
+  LLISTABID_inserir(&(info_client->connections), ci);
+
+  printf("socket == %d\n", ci.socket);
+  printf("user connected %s\n", ci.userName);//KILL ME
+  printf("audio audioDirectory %s\n", ci.audioDirectory);//KILL ME
+  printf("ip %s\n", ci.ip);//KILL ME
+  printf("port %d\n", ci.port);//KILL ME
   //sprintf(buffer, "%d connected: %s\n", portToConnect, cd.userName);
   //write(1, buffer, strlen(buffer));
 
 }//func
 
-void receiveCD(connectedInfo * ci, int sockfd){
+connectionInfo receiveCD(int sockfd){
   char* buffer;
   int type = 8;
+  connectionInfo ci;
 
   buffer = (char*)malloc(sizeof(char));
-  ci->socket = sockfd;
+  ci.socket = sockfd;
 
-  ci->userName = receiveSocketMSG(sockfd, &type);
+  ci.userName = receiveSocketMSG(sockfd, &type);
 
-  ci->audioDirectory = receiveSocketMSG(sockfd, &type);
+  ci.audioDirectory = receiveSocketMSG(sockfd, &type);
 
-  ci->ip = receiveSocketMSG(sockfd, &type);
+  ci.ip = receiveSocketMSG(sockfd, &type);
 
   buffer = receiveSocketMSG(sockfd, &type);
-  ci->port = (uint16_t)atoi(buffer);
+  ci.port = (uint16_t)atoi(buffer);
 
   printf("type post receive == %d\n", type);//KILL ME
 
   //printf("Llegim el bytes del fitxer d'audio\n");
-
   //getAudioFile("Hymn of the Soviet Union - Russian Red Army Choir.mp3", ci->audioDirectory, sockfd, ci->userName);//KILL ME
+  return ci;
 }//func
 
-void say(char * user, char * data, connectedList * cl, configurationData cd){
-  int i, found = 0;
+void say(char * user, char * data, Info * info_client){
+  int found = 0;
   char * message;
+  connectionInfo ci;
 
-  message = (char*)malloc(sizeof(char) * (strlen(data) + strlen(cd.userName) + 5));
-  sprintf(message, SEND_MSG, cd.userName, data);
+  message = (char*)malloc(sizeof(char) * (strlen(data) + strlen(info_client->cd.userName) + 5));
+  sprintf(message, SEND_MSG, info_client->cd.userName, data);
   printf("in say\n");//KILL ME
 
-  if (cl->num_connected == 0) {
+  if (LLISTABID_esBuida(info_client->connections)) {
     write(1, ERR_NOUSERS, strlen(ERR_NOUSERS));
-  }else{
-    for (i = 0; i < cl->num_connected && !found; i++) {
-      printf("user-%s cl-%s\n", user, cl->info[i].userName);
-      if (strcasecmp(cl->info[i].userName, user) == 0) {
-        printf("MSG to send == %s\n", message);
-        sendSocketMSG(cl->info[i].socket, message, 2);
-        found = 1;
 
+  }else{
+    LLISTABID_vesInici(&(info_client->connections));
+
+    do{
+      ci = LLISTABID_consulta(info_client->connections);
+
+      if (strcasecmp(ci.userName, user) == 0) {
+        printf("MSG to send == %s\n", message);
+        sendSocketMSG(ci.socket, message, 2);
+        found = 1;
       }//if
-    }//for
+
+    }while (!LLISTABID_fi(info_client->connections) && !found);
 
     if (!found) {
       write(1, ERR_UNKNOWNUSER, strlen(ERR_UNKNOWNUSER));
@@ -175,39 +185,44 @@ void say(char * user, char * data, connectedList * cl, configurationData cd){
   }//else
 }//func
 
-void broadcast(char * data, connectedList * cl, configurationData cd){
-  int i;
+void broadcast(char * data, Info * info_client){
   char * message;
+  connectionInfo ci;
 
-  message = (char*)malloc(sizeof(char) * (strlen(data) + strlen(cd.userName) + 5));
-  sprintf(message, SEND_MSG, cd.userName, data);
+  message = (char*)malloc(sizeof(char) * (strlen(data) + strlen(info_client->cd.userName) + 5));
+  sprintf(message, SEND_MSG, info_client->cd.userName, data);
 
   //semafor
-  if (cl->num_connected == 0) {
+  if (LLISTABID_esBuida(info_client->connections)) {
     write(1, ERR_NOUSERS, strlen(ERR_NOUSERS));
   }else{
     //enviem el misatge a tots els usuaris conectats
-    for(i = 0; i < cl->num_connected; i++){
-      printf("sending broadcast to socket %d\n", cl->info[i].socket);
-      sendSocketMSG(cl->info[i].socket, message, 3);
-    } //for
+    LLISTABID_vesInici(&(info_client->connections));
+
+    do{
+      ci = LLISTABID_consulta(info_client->connections);
+      printf("sending broadcast to socket %d\n", ci.socket);//KILL ME
+      sendSocketMSG(ci.socket, message, 3);
+
+    }while (!LLISTABID_fi(info_client->connections));
+
   }//else
   //fi_ssemafor
 }//func
 
-void showAudios(char* userName, connectedList connected_list){
+void showAudios(char* userName, Info * info_client){
 
-  connectedInfo connected_info;
+  connectionInfo ci;
   char* buffer = malloc(sizeof(char));
 
-  connected_info = checkUserConnnected(userName, connected_list);
-  if(connected_info.socket == 0){
+  ci = checkUserConnnected(userName, info_client->connections);
+  if(ci.socket == -1){
     sprintf(buffer, USER_NO_CONNECTED, userName);
     write(1, buffer, strlen(buffer));
   } //if
   else{
     //llegir directori d'audios
-     readDirectoryUserConnected(connected_info.socket);
+     readDirectoryUserConnected(ci.socket);
   } //else
 
   free(buffer);

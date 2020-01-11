@@ -118,6 +118,50 @@ typedef struct {
 	int numConnections;
 }configurationData;
 
+
+//---------------------------------LIST----------------------------------------
+#define ELEMENT_INDEFINIT -1
+
+//Struct in list
+typedef struct{
+	int socket;
+	char * userName;
+	char * audioDirectory;
+	char * ip;
+	uint16_t port;
+}connectionInfo;
+
+typedef struct _Node{
+  connectionInfo ci;
+  struct _Node *seg;
+  struct _Node *ant;
+}Node;
+
+typedef struct{
+  Node *pri;
+  Node *ult;
+  Node *pdi;
+}LlistaBid;
+//-----------------------------------------------------------------------------
+
+typedef struct{
+	configurationData cd;
+	LlistaBid connections;
+}Info;
+/*
+//DEPRECATED
+typedef struct{
+  int num_sockets;
+  configurationData* sockets;
+}Clients;
+
+//DEPRECATED
+typedef struct{
+  configurationData cd;
+  Clients clients;
+}ThreadServer;
+
+//DEPRECATED
 typedef struct {
 	int socket;
 	char * userName;
@@ -126,9 +170,10 @@ typedef struct {
 	uint16_t port;
 }connectedInfo;
 
+//DEPRECATED
 typedef struct{
 	int num_connected;
 	connectedInfo * info;
 }connectedList;
-
+*/
 #endif
