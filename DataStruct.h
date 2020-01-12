@@ -45,7 +45,7 @@
 #define RECIEVING_DATA "Received: %Le Mb"
 #define TRANSFER_SUCCES_ONCLIENT "File OK....Completed\n"
 #define TESTING "Testing ...\n"
-#define CONNECTIONS_AVAILABLE "%d connections available\n"
+#define CONNECTIONS_AVAILABLE "\n%d connections available\n\n"
 #define PIPE_NOT_CREATED "Pipe couldn't be created\n"
 #define FORK_NOT_CREATED "Fork couldn't be created\n"
 #define FILE_TRANSFER_KO "Transfer corrupted\n"

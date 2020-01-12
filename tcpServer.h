@@ -13,7 +13,6 @@
 #include "command.h"
 #include "io.h"
 
-Clients initializationClients();
 int serverClient(configurationData cd);
 void *userAsClient(void *arg);
 void *userAsServer(void *arg);

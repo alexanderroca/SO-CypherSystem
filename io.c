@@ -893,7 +893,7 @@ void checkCMDShow(char **ptr, int c, Info * info_client){
 
 				write(1, ERR_2MANYARGS, strlen(ERR_2MANYARGS));
 			}else{
-				showConnections();
+				showConnections(info_client->cd.port);
 			}//else
 		}else{
 
@@ -1075,10 +1075,14 @@ void showPorts(int ports[], int num_ports){
   sprintf(buffer, CONNECTIONS_AVAILABLE, num_ports);
   write(1, buffer, strlen(buffer));
 
-  /*for(i = 0; i < num_ports; i++){
-    write(1, ports[i], sizeof(ports[i]));
-  } //for
-*/
+	if(num_ports > 0)
+	  for(i = 0; i < num_ports; i++){
+			sprintf(buffer, "%d\n", ports[i]);
+	    write(1, buffer, sizeof(int));
+		}	//for
+
+	write(1, "\n", strlen("\n"));
+
   free(buffer);
 }//func
 

@@ -1,14 +1,12 @@
 #include "command.h"
 
-void showConnections(){
+void showConnections(uint16_t port){
 
   pid_t pid;
   //Pipe
   int fd[2];
 
   printf("Tracta forks\n");
-
-  write(1, TESTING, strlen(TESTING));
 
   if(initializationPipes(fd)){
     //Mostrar error Pipe Failed
@@ -23,37 +21,38 @@ void showConnections(){
     } //if
     else if(pid == 0){
       //Proces fill
+
       close(fd[READ_PIPE]);
 
       dup2(fd[WRITE_PIPE], STDOUT_FILENO);
 
-      execlp(PATH, PATH, MIN_PORT, MAX_PORT, IP_SCRIPT, NULL);
+      execlp(PATH, PATH, "8850", "8860", "127.0.0.1", NULL);
 
       close(fd[WRITE_PIPE]);
-
-      exit(1);
     } //else-if
     else{
       //Proces pare
       int num_ports = 0;
-      //int num_bytes = 0;
+      int aux_num;
+      int num_bytes;
       char* buffer = malloc(sizeof(char));
+      char* subString;
       int* ports = malloc(sizeof(int));
 
       close(fd[WRITE_PIPE]);
 
-      //num_bytes = read(fd[READ_PIPE], buffer, 1024);
-      printf("buffer pipe: %s\n", buffer);
-      num_ports++;
-      ports = realloc(ports, sizeof(int) * (num_ports));
-
-      ports[num_ports - 1] = atoi(buffer);
+      while((num_bytes = read(fd[READ_PIPE], buffer, 1024)) != 0){
+          subString = strtok(buffer, " ");
+          subString = strtok(NULL, " ");
+          aux_num = atoi(subString);
+          if(aux_num != port){
+            num_ports++;
+            ports = realloc(ports, sizeof(int) * (num_ports));
+            ports[num_ports - 1] = aux_num;
+          } //if
+      } //while
 
       close(fd[READ_PIPE]);
-
-      printf("PORT: %d\n", ports[0]);
-
-      printf("S'HA LLEGIT EL SCRIPT\n");
 
       showPorts(ports, num_ports);
 

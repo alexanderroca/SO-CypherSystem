@@ -2,20 +2,9 @@
 
 sem_t mutexExclusioUserConnect;
 
-//DEPRECATED
-Clients initializationClients(){
-
-  Clients clients;
-  clients.num_sockets = 0;
-  clients.sockets = malloc(sizeof(configurationData));
-
-  return clients;
-}
-
 //Creem dos threads
 int serverClient(configurationData cd){
 
-  //Clients clients;
   pthread_t t_client, t_server;
   int estat = 0;
   Info info_client, info_server;
