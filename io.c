@@ -74,6 +74,25 @@ void clearBuffer(char* buffer){
 }//func
 
 
+char *get_message(int fd, char delimiter) {
+	char *msg = (char *) malloc(1);
+	char current;
+	int i = 0;
+
+	while (read(fd, &current, 1) > 0) {
+
+		msg[i] = current;
+		msg = (char *) realloc(msg, ++i + 1);
+
+		if (current == delimiter)
+			break;
+	}
+
+	msg[i] = '\0';
+
+	return msg;
+}
+
 /******************************************************************************
 * <Description>
 * readUntil reads from a given file descriptor until it finds a given stopping
@@ -161,8 +180,19 @@ int readConfigurationFile(char* path, configurationData* cd) {
 	} //else
 }//func
 
-///////////////////////////////////WIP/////////////////////////////////////////
 
+/******************************************************************************
+* <Description>
+* executeMD5sum execute md5sum command by file name
+*
+* @authors: Alexander Roca <alexander.roca@students.salle.url.edu>
+*					  Victor Blasco <victor.blasco@students.salle.url.edu>
+* @version: 1.4
+*
+* @param: string that contains the file name.
+*
+* @return: returns string, if it's NULL something went wrong otherwise it contains md5 result
+******************************************************************************/
 char* executeMD5sum(char* file_name){
 
 	char* md5sum = malloc(sizeof(char));
@@ -214,6 +244,21 @@ char* executeMD5sum(char* file_name){
 	return md5sum;
 }//func
 
+/******************************************************************************
+* <Description>
+* readAudioFile reads the audio file of certain user, that we know by the
+* socket, we read the file by chunks of 255 bytes and then we send this data
+* to the client that request this file.
+*
+* @authors: Alexander Roca <alexander.roca@students.salle.url.edu>
+*					  Victor Blasco <victor.blasco@students.salle.url.edu>
+* @version: 1.4
+*
+* @param: path string containing the path to the file.
+* @param: int that contains the socket
+*
+* @return: returns -1 in case of error 0 if everything worked correctly.
+******************************************************************************/
 int readAudioFile(char* path, int socket){
 
 	/* First read file in chunks of 256 bytes */
@@ -221,14 +266,16 @@ int readAudioFile(char* path, int socket){
 	int fd = open(path, O_RDONLY);
 	int num_bytes;
 	char* md5sum_file = malloc(sizeof(char));
+	int status = 0;
 
-	printf("PATH: %s\n", path); //KILL ME
 	if(fd < 0){
-		/*sprintf(buffer, ERROR_OPENING_FILE, fd);
-		write(1, buffer, strlen(buffer));*/
+		//send KO
+		write(socket, H_FILEKO, strlen(H_FILEKO));
+		status = 1;
 	}	//if
 	else{
-
+		//send OK
+		write(socket, H_FILEOK, strlen(H_FILEOK));
 		do{
 
 			num_bytes = read(fd, buff, 255);
@@ -247,51 +294,59 @@ int readAudioFile(char* path, int socket){
 			write(1, MD5SUM_FAILED, strlen(MD5SUM_FAILED));
 	}	//else
 
-	return 0;
+	free(md5sum_file);
+
+	return status;
 }//func
 
 int getAudioFile(char* fileName, char* directoryUserConnected, int socket, char* usernameConnected){
 
-	//Cal rebre el nom del file primer abans de transferir les dades
-
+	int status = 0;
 	char buffer[255];
 	int num_bytes;
 	char* md5sum_file;
 	char* path = strcat(directoryUserConnected, "/");
 	path = strcat(path, fileName);
 
-	int fd = open(path, O_WRONLY | O_CREAT, 0644);
+	//Check if file exists
+	char* response = get_message(socket, ']');
 
-	if(fd < 0){
-		write(1, ERROR_OPENING_FILE, strlen(ERROR_OPENING_FILE));
-	}	//if
+	if(strcmp(H_FILEKO, response) == 0)
+			status = 1;
 	else{
+		int fd = open(path, O_WRONLY | O_CREAT, 0644);
 
-		do{
-			num_bytes = read(socket, buffer, 255);
-			write(fd, buffer, num_bytes);
-			clearBuffer(buffer);
-		}	while(num_bytes == 255);	//do-while
-
-		read(socket, buffer, 255);
-
-		printf("Path: %s\n", path);
-
-		md5sum_file = executeMD5sum(path);
-
-		printf("Buffer: %s\n", buffer);
-		printf("md5sum_file: %s\n", md5sum_file);
-
-		if(strcmp(buffer, md5sum_file) == 0){
-			sprintf(buffer, FILE_TRANSFER_OK, usernameConnected, fileName);
-			write(1, buffer, strlen(buffer));
+		if(fd < 0){
+			write(1, ERROR_OPENING_FILE, strlen(ERROR_OPENING_FILE));
 		}	//if
-		else
-			write(1, FILE_TRANSFER_KO, strlen(FILE_TRANSFER_KO));
+		else{
 
+			do{
+				num_bytes = read(socket, buffer, 255);
+				write(fd, buffer, num_bytes);
+				clearBuffer(buffer);
+			}	while(num_bytes == 255);	//do-while
+
+			read(socket, buffer, 255);
+
+			printf("Path: %s\n", path);
+
+			md5sum_file = executeMD5sum(path);
+
+			printf("Buffer: %s\n", buffer);
+			printf("md5sum_file: %s\n", md5sum_file);
+
+			if(strcmp(buffer, md5sum_file) == 0){
+				sprintf(buffer, FILE_TRANSFER_OK, usernameConnected, fileName);
+				write(1, buffer, strlen(buffer));
+			}	//if
+			else
+				write(1, FILE_TRANSFER_KO, strlen(FILE_TRANSFER_KO));
+
+		}	//else
 	}	//else
 
-	return 0;
+	return status;
 }//func
 
 int sendSocketMSG(int sockfd, char * data, int type){

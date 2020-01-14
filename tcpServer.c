@@ -226,5 +226,5 @@ void sendConfirmationReply(int sockfd, configurationData cd){
   //envia port
   itoa((int)cd.port, buffer);
   sendSocketMSG(sockfd, buffer, 0);
-  //readAudioFile("Audio/Hymn of the Soviet Union - Russian Red Army Choir.mp3", sockfd);
+  readAudioFile("Audio/Russian Red Army Choir.mp3", sockfd);
 }

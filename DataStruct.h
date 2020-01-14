@@ -86,6 +86,8 @@
 #define H_MD5OK "[MD5OK]"
 #define H_MD5KO "[MD5KO]"
 #define H_EOF "[EOF]"
+#define H_FILEKO "[FILEKO]\0"
+#define H_FILEOK "[FILEOK]\0"
 
 //other defines
 #define FILL_SHOWAUDIO "Show Audio Requested\n"
