@@ -1082,15 +1082,20 @@ void readDirectoryUserConnected(int socket){
 
 	buffer = receiveSocketMSG(socket, &type);
 
-	for (c = 0, aux = strtok (buffer, " ");
-					aux != NULL; aux = strtok (NULL, " "), c++){
+	if(buffer == NULL){
+		write(1, AUDIO_NO_LIST_TITLE, strlen(AUDIO_NO_LIST_TITLE));
+	}	//if
+	else{
 
-		files = realloc (files, sizeof (char *) * (c + 2));
-		files[c] = aux;
-	}
+		for (c = 0, aux = strtok (buffer, " ");
+						aux != NULL; aux = strtok (NULL, " "), c++){
 
-	showAudioFiles(files, c);
+			files = realloc (files, sizeof (char *) * (c + 2));
+			files[c] = aux;
+		}
 
+		showAudioFiles(files, c);
+	}	//else
   free(files);
 }//func
 

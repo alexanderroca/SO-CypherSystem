@@ -147,7 +147,7 @@ connectionInfo receiveCD(int sockfd){
   printf("type post receive == %d\n", type);//KILL ME
 
   //printf("Llegim el bytes del fitxer d'audio\n");
-  getAudioFile("Hymn of the Soviet Union - Russian Red Army Choir.mp3", ci.audioDirectory, sockfd, ci.userName);//KILL ME
+  //getAudioFile("Hymn of the Soviet Union - Russian Red Army Choir.mp3", ci.audioDirectory, sockfd, ci.userName);//KILL ME
   return ci;
 }//func
 

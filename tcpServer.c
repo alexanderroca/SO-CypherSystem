@@ -11,7 +11,6 @@ int serverClient(configurationData cd){
   //ThreadServer ts;
   //semaphore sem_clientServer;
 
-  //replyDirectoryUserConnected("Audio", 0);
   //clients = initializationClients();
 
   write(1, WELCOME, strlen(WELCOME));
@@ -226,5 +225,5 @@ void sendConfirmationReply(int sockfd, configurationData cd){
   //envia port
   itoa((int)cd.port, buffer);
   sendSocketMSG(sockfd, buffer, 0);
-  readAudioFile("Audio/Russian Red Army Choir.mp3", sockfd);
+  //readAudioFile("Audio/Russian Red Army Choir.mp3", sockfd);
 }

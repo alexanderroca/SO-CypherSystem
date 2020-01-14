@@ -52,6 +52,7 @@
 #define FILE_TRANSFER_OK "[%s] %s downloaded\n"
 #define SHOW_USER_AUDIO "[%s] Audios\n"
 #define AUDIO_LIST_TITLE "\n------Audios Found------\n"
+#define AUDIO_NO_LIST_TITLE "\n------Audios Not Found------\n"
 
 #define MT_CONNECTION 0x01
 
