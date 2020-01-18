@@ -6,8 +6,6 @@ void showConnections(uint16_t port){
   //Pipe
   int fd[2];
 
-  printf("Tracta forks\n");
-
   if(initializationPipes(fd)){
     //Mostrar error Pipe Failed
     write(1, PIPE_NOT_CREATED, strlen(PIPE_NOT_CREATED));
@@ -60,7 +58,7 @@ void showConnections(uint16_t port){
       free(ports);
     } //else
   } //else
-}
+}//func
 
 void connectToPort(uint16_t portToConnect, char* ipToConnect, Info * info_client) {
 
@@ -225,4 +223,36 @@ void showAudios(char* userName, Info * info_client){
   } //else
 
   free(buffer);
+}//func
+
+void dowloadAudios(char * user, char * audio_file, Info * info_client) {
+  int found = 0;
+  connectionInfo ci;
+
+  LLISTABID_vesInici(&(info_client->connections));
+
+  if (LLISTABID_esBuida(info_client->connections)) {
+    write(1, ERR_NOUSERS, strlen(ERR_NOUSERS));
+
+  }else{
+    while (!LLISTABID_fi(info_client->connections) && !found){
+      ci = LLISTABID_consulta(info_client->connections);
+
+      if (strcmp(ci.userName, user) == 0) {
+        found = 1;
+
+      }else{
+        LLISTABID_avanca(&(info_client->connections));
+
+      }//else
+    }//while
+
+    if (!found) {
+      write(1, ERR_UNKNOWNUSER, strlen(ERR_UNKNOWNUSER));
+
+    }else{
+      sendSocketMSG(ci.socket, NULL, 5);
+      getAudioFile(audio_file, ci.audioDirectory, ci.socket, ci.userName);
+    }//else
+  }//else
 }//func

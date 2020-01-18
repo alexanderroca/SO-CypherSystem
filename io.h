@@ -5,10 +5,6 @@
 #include "LlistaBid.h"
 #include "command.h"
 
-#define MD5SUM "md5sum"
-#define MD5SUM_FAILED "md5sum command error\n"
-#define MD5SUM_COMMAND "md5sum %s"
-
 //
 void fixStrings(configurationData * cd);
 //
@@ -65,7 +61,7 @@ void stringToUpper(char * string);
 void checkCMDConnect(char **ptr, int c, Info * info_client);
 void checkCMDSay(char **ptr, int c, Info * info_client);
 void checkCMDBroadcast(char **ptr, int c, Info * info_client);
-void checkCMDDownload(char **ptr, int c);
+void checkCMDDownload(char **ptr, int c, Info * info_client);
 void checkCMDShow(char **ptr, int c, Info * info_client);
 
 //makes the checks to see if the exit command has been correctly entered

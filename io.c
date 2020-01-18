@@ -130,7 +130,6 @@ char* readUntil(int fd, char end) {
 * structure.
 *
 * @authors: Alexander Roca <alexander.roca@students.salle.url.edu>
-*					  Victor Blasco <victor.blasco@students.salle.url.edu>
 * @version: 1.4
 *
 * @param: path string containing the path to the file.
@@ -180,13 +179,11 @@ int readConfigurationFile(char* path, configurationData* cd) {
 	} //else
 }//func
 
-
 /******************************************************************************
 * <Description>
 * executeMD5sum execute md5sum command by file name
 *
 * @authors: Alexander Roca <alexander.roca@students.salle.url.edu>
-*					  Victor Blasco <victor.blasco@students.salle.url.edu>
 * @version: 1.4
 *
 * @param: string that contains the file name.
@@ -251,7 +248,6 @@ char* executeMD5sum(char* file_name){
 * to the client that request this file.
 *
 * @authors: Alexander Roca <alexander.roca@students.salle.url.edu>
-*					  Victor Blasco <victor.blasco@students.salle.url.edu>
 * @version: 1.4
 *
 * @param: path string containing the path to the file.
@@ -408,8 +404,13 @@ int sendSocketMSG(int sockfd, char * data, int type){
 			break;
 		case 5:
 			//DOWNLOAD_AUDIOS
-			break;
-		case 6:
+			printf("in sendSocketMSG download audios\n");//KILL ME
+			length = 0;
+			message = realloc(message, sizeof(char) * (length + strlen(H_DOWNAUDIO) + 10));
+
+			sprintf(message, PROTOCOL_MESSAGE, MT_DOWNAUDIO, H_DOWNAUDIO, length, data);
+			printf("message sent == %s\n", message);//KILL ME
+			write(sockfd, message, strlen(message));
 			break;
 		default:
 			write(1, "Error Default criteria met in sendSocketMSG\n",
@@ -419,7 +420,6 @@ int sendSocketMSG(int sockfd, char * data, int type){
 
 	return 1;
 }//func
-
 
 char * receiveSocketMSG(int sockfd, int * type){
 	char * data,* buffer, * aux;
@@ -443,7 +443,7 @@ char * receiveSocketMSG(int sockfd, int * type){
 	type_int = atoi(ptr[0]);
 	*type = type_int;
 
-	printf("type int == %d\n", type_int);
+	printf("type int == %d\n", type_int);//KILL ME
 	switch (type_int) {
 
 		case 0://RECEIVE CD
@@ -484,6 +484,10 @@ char * receiveSocketMSG(int sockfd, int * type){
 			break;
 		case 5:
 		//DOWNLOAD AUDIOS
+			printf("in receeive audio download\n");//KILL ME
+			data = realloc(data, sizeof(char) * strlen(FILL_DOWNAUDIO));
+			data = FILL_DOWNAUDIO;
+			
 			break;
 		case 6:
 		//EXIT
@@ -523,8 +527,6 @@ int sendSocketReply(int type, int okko){
 	return 1;
 }
 */
-
-/////////////////////////////////EOWIP//////////////////////////////////////////
 
 /******************************************************************************
 * <Description>
@@ -596,7 +598,7 @@ int  checkCommand(char * user_input, Info * info_client) {
 			}else{//if broadcast
 				if (strcasecmp(ptr[0], CMD_DOWNLOAD) == 0) {
 
-					checkCMDDownload(ptr, c);
+					checkCMDDownload(ptr, c, info_client);
 				}else{//if download
 					if (strcasecmp(ptr[0], CMD_EXIT) == 0) {
 
@@ -833,7 +835,7 @@ void checkCMDBroadcast(char **ptr, int c, Info * info_client) {
 					have been read from user_input
 * @param: c integer that store the number of word in the ptr array.
 ******************************************************************************/
-void checkCMDDownload(char **ptr, int c) {
+void checkCMDDownload(char **ptr, int c, Info * info_client) {
 
 	char *user, *buffer, *audio_file;
 	int i, ok;
@@ -882,7 +884,7 @@ void checkCMDDownload(char **ptr, int c) {
 	if(ok){
 		sprintf(buffer_aux, "downloading audio file %s from user %s\n", audio_file, user);//KILL ME
 		write(1, buffer_aux, strlen(buffer_aux));
-		//download(user, audio_file); //TODO: implement function
+		downloadAudios(user, audio_file, info_client); //TODO: implement function
 	}
 }//func
 
@@ -1157,4 +1159,4 @@ connectionInfo setupCI(configurationData cd){
 	ci.port = cd.port;
 
 	return ci;
-}
+}//func

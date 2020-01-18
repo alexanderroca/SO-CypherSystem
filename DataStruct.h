@@ -51,6 +51,9 @@
 #define FILE_TRANSFER_KO "Transfer corrupted\n"
 #define FILE_TRANSFER_OK "[%s] %s downloaded\n"
 #define SHOW_USER_AUDIO "[%s] Audios\n"
+#define MD5SUM "md5sum"
+#define MD5SUM_FAILED "md5sum command error\n"
+#define MD5SUM_COMMAND "md5sum %s"
 #define AUDIO_LIST_TITLE "\n------Audios Found------\n"
 #define AUDIO_NO_LIST_TITLE "\n------Audios Not Found------\n"
 
@@ -84,6 +87,7 @@
 #define H_EXIT "[]"
 #define H_CONOK "[CONOK]"
 #define H_CONKO "[CONKO]"
+#define H_DOWNAUDIO "[DOWNAUDIO]"
 #define H_MD5OK "[MD5OK]"
 #define H_MD5KO "[MD5KO]"
 #define H_EOF "[EOF]"
@@ -92,6 +96,7 @@
 
 //other defines
 #define FILL_SHOWAUDIO "Show Audio Requested\n"
+#define FILL_DOWNAUDIO "Audio Download Requested\n"
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -100,10 +105,19 @@
 #define ERR_ARGUMENTS "ERROR, invalid arguments\n"
 
 //defines for command.c
+#define READ_PIPE 0
+#define WRITE_PIPE 1
+
 #define SEND_MSG "[%s] %s"
 #define NUM_CONNECTIONS "Connections availables: %d\n"
 #define ERR_NOUSERS "Error, no users connected.\n"
 #define ERR_UNKNOWNUSER "Error, user unknown.\n"
+#define PATH "./show_connections_v2.sh"
+#define PATH_NAME "show_connections_v2.sh"
+#define MIN_PORT "8550"
+#define MAX_PORT "8560"
+#define IP_SCRIPT "127.0.0.1"
+#define USER_NO_CONNECTED "%s not connected\n"
 
 typedef struct {
 	char* toConnect;
@@ -151,32 +165,5 @@ typedef struct{
 	configurationData cd;
 	LlistaBid connections;
 }Info;
-/*
-//DEPRECATED
-typedef struct{
-  int num_sockets;
-  configurationData* sockets;
-}Clients;
 
-//DEPRECATED
-typedef struct{
-  configurationData cd;
-  Clients clients;
-}ThreadServer;
-
-//DEPRECATED
-typedef struct {
-	int socket;
-	char * userName;
-	char * audioDirectory;
-	char * ip;
-	uint16_t port;
-}connectedInfo;
-
-//DEPRECATED
-typedef struct{
-	int num_connected;
-	connectedInfo * info;
-}connectedList;
-*/
 #endif

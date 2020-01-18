@@ -132,8 +132,13 @@ int DSMsgHandler(char * message, int type, char * client_name, connectionInfo * 
       write(1, client_name, strlen(client_name));
 		break;
 		case 5://DOWNLOAD_AUDIOS
+      printf("reading audio file\n");//KILL ME
+      readAudioFile(ci->audioDirectory, ci->socket);
+      write(1, client_name, strlen(client_name));
 		break;
     default:
+      write(1, "Error, Default DSMsgHandler triggered\n",
+        strlen("Error, Default DSMsgHandler triggered\n"));
     break;
 	}//switch
 
