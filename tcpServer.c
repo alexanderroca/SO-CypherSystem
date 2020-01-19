@@ -107,6 +107,7 @@ void *dedicatedServer(void *arg){
 
   while (connected) {
     message = receiveSocketMSG(ci->socket, &msg_type);
+    printf("post msg received\n");//KILL ME
     connected = DSMsgHandler(message, msg_type, client_name, ci);
   }
 
@@ -118,6 +119,9 @@ void *dedicatedServer(void *arg){
 
 int DSMsgHandler(char * message, int type, char * client_name, connectionInfo * ci){
   int connected = 1;//in  message exit turn this to false
+  char * path;
+
+  path = (char*)malloc(sizeof(char));
 
 	switch (type) {
 
@@ -133,7 +137,9 @@ int DSMsgHandler(char * message, int type, char * client_name, connectionInfo * 
 		break;
 		case 5://DOWNLOAD_AUDIOS
       printf("reading audio file\n");//KILL ME
-      readAudioFile(ci->audioDirectory, ci->socket);
+      path = realloc(path, sizeof(char) * (strlen(message) + strlen(ci->audioDirectory) + 5));
+      sprintf(path, "%s/%s", ci->audioDirectory, message);
+      readAudioFile(path, ci->socket);
       write(1, client_name, strlen(client_name));
 		break;
     default:
@@ -142,6 +148,7 @@ int DSMsgHandler(char * message, int type, char * client_name, connectionInfo * 
     break;
 	}//switch
 
+  free(path);
   return connected;
 }//func
 

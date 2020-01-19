@@ -225,7 +225,7 @@ void showAudios(char* userName, Info * info_client){
   free(buffer);
 }//func
 
-void dowloadAudios(char * user, char * audio_file, Info * info_client) {
+void downloadAudios(char * user, char * audio_file, Info * info_client) {
   int found = 0;
   connectionInfo ci;
 
@@ -251,8 +251,8 @@ void dowloadAudios(char * user, char * audio_file, Info * info_client) {
       write(1, ERR_UNKNOWNUSER, strlen(ERR_UNKNOWNUSER));
 
     }else{
-      sendSocketMSG(ci.socket, NULL, 5);
-      getAudioFile(audio_file, ci.audioDirectory, ci.socket, ci.userName);
+      sendSocketMSG(ci.socket, audio_file, 5);
+      getAudioFile(audio_file, info_client->cd.audioDirectory, ci.socket, ci.userName);
     }//else
   }//else
 }//func

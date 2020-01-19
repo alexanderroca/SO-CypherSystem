@@ -405,7 +405,7 @@ int sendSocketMSG(int sockfd, char * data, int type){
 		case 5:
 			//DOWNLOAD_AUDIOS
 			printf("in sendSocketMSG download audios\n");//KILL ME
-			length = 0;
+			length = strlen(data);
 			message = realloc(message, sizeof(char) * (length + strlen(H_DOWNAUDIO) + 10));
 
 			sprintf(message, PROTOCOL_MESSAGE, MT_DOWNAUDIO, H_DOWNAUDIO, length, data);
@@ -485,9 +485,9 @@ char * receiveSocketMSG(int sockfd, int * type){
 		case 5:
 		//DOWNLOAD AUDIOS
 			printf("in receeive audio download\n");//KILL ME
-			data = realloc(data, sizeof(char) * strlen(FILL_DOWNAUDIO));
-			data = FILL_DOWNAUDIO;
-			
+			data = realloc(data, sizeof(char) * strlen(ptr[3]));
+			strcpy(data, ptr[3]);
+
 			break;
 		case 6:
 		//EXIT
