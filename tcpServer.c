@@ -136,9 +136,9 @@ int DSMsgHandler(char * message, int type, char * client_name, connectionInfo * 
       write(1, client_name, strlen(client_name));
 		break;
 		case 5://DOWNLOAD_AUDIOS
-      printf("reading audio file\n");//KILL ME
       path = realloc(path, sizeof(char) * (strlen(message) + strlen(ci->audioDirectory) + 5));
       sprintf(path, "%s/%s", ci->audioDirectory, message);
+      printf("reading audio file path: %s\n", path);//KILL ME
       readAudioFile(path, ci->socket);
       write(1, client_name, strlen(client_name));
 		break;

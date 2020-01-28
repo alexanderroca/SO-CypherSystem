@@ -192,9 +192,9 @@ int readConfigurationFile(char* path, configurationData* cd) {
 ******************************************************************************/
 char* executeMD5sum(char* file_name){
 
-	char* md5sum = malloc(sizeof(char));
-
+	char* md5sum;
 	pid_t pid;
+
 	//Pipe
 	int fd[2];
 
@@ -224,7 +224,7 @@ char* executeMD5sum(char* file_name){
 		else{
 			//Proces pare
 			int num_bytes;
-			char* buffer = malloc(sizeof(char));
+			char buffer[1024];
 
 			close(fd[WRITE_PIPE]);
 
@@ -261,7 +261,7 @@ int readAudioFile(char* path, int socket){
 	char buff[255];
 	int fd = open(path, O_RDONLY);
 	int num_bytes;
-	char* md5sum_file = malloc(sizeof(char));
+	char* md5sum_file;
 	int status = 0;
 
 	if(fd < 0){
@@ -283,15 +283,15 @@ int readAudioFile(char* path, int socket){
 		}while(num_bytes > 0);	//do-while
 
 		md5sum_file = executeMD5sum(path);
+		printf("md5sum_file: %s\n", md5sum_file);//KILL ME
 
 		if(md5sum_file != NULL)
-			write(socket, md5sum_file, strlen(md5sum_file));
+			write(socket, md5sum_file, 32);
 		else
 			write(1, MD5SUM_FAILED, strlen(MD5SUM_FAILED));
 	}	//else
 
-	free(md5sum_file);
-
+	close(fd);
 	return status;
 }//func
 
@@ -310,7 +310,7 @@ int getAudioFile(char* fileName, char* directoryUserConnected, int socket, char*
 	if(strcmp(H_FILEKO, response) == 0)
 			status = 1;
 	else{
-		int fd = open(path, O_WRONLY | O_CREAT, 0644);
+		int fd = open(path, O_WRONLY | O_CREAT);
 
 		if(fd < 0){
 			write(1, ERROR_OPENING_FILE, strlen(ERROR_OPENING_FILE));
@@ -325,21 +325,23 @@ int getAudioFile(char* fileName, char* directoryUserConnected, int socket, char*
 
 			read(socket, buffer, 255);
 
-			printf("Path: %s\n", path);
+			printf("Path: %s\n", path);//KILL ME
 
 			md5sum_file = executeMD5sum(path);
 
-			printf("Buffer: %s\n", buffer);
-			printf("md5sum_file: %s\n", md5sum_file);
+			printf("Buffer: %s\n", buffer);//KILL ME
+			printf("md5sum_file: %s\n", md5sum_file);//KILL ME
 
 			if(strcmp(buffer, md5sum_file) == 0){
 				sprintf(buffer, FILE_TRANSFER_OK, usernameConnected, fileName);
-				write(1, buffer, strlen(buffer));
+				write(1, buffer, 32);
 			}	//if
 			else
 				write(1, FILE_TRANSFER_KO, strlen(FILE_TRANSFER_KO));
 
 		}	//else
+
+		close(fd);
 	}	//else
 
 	return status;
