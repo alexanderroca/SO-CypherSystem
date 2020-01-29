@@ -260,9 +260,10 @@ int readAudioFile(char* path, int socket){
 	/* First read file in chunks of 256 bytes */
 	char buff[255];
 	int fd = open(path, O_RDONLY);
-	int num_bytes;
 	char* md5sum_file;
 	int status = 0;
+
+	struct stat st;
 
 	if(fd < 0){
 		//send KO
@@ -272,15 +273,34 @@ int readAudioFile(char* path, int socket){
 	else{
 		//send OK
 		write(socket, H_FILEOK, strlen(H_FILEOK));
-		do{
 
+		int i, trunk_st_size;
+		int num_bytes;
+
+		stat(path, &st);
+
+		trunk_st_size = (int) st.st_size / 255;
+
+		i = 0;
+
+		while(i < (trunk_st_size * 255)){
+			bzero(buff, 255);
 			num_bytes = read(fd, buff, 255);
-			/* If read was success, send data. */
-			if(num_bytes > 0){
-					write(socket, buff, num_bytes);
-					clearBuffer(buff);
-			}	//if
-		}while(num_bytes > 0);	//do-while
+			write(socket, buff, num_bytes);
+			printf("num_bytes: %d - i: %d - trunk_size: %d\n", num_bytes, i, trunk_st_size * 255);
+			i += 255;
+		}	//while
+
+		if(i < st.st_size){
+			bzero(buff, 255);
+			i = st.st_size - (trunk_st_size * 255);
+			printf("I = %d\n", i);
+			num_bytes = read(fd, buff, i);
+			write(socket, buff, i);
+		}	//if
+
+		write(socket, H_EOF, strlen(H_EOF));
+		printf("EXIT\n");//KILL ME
 
 		md5sum_file = executeMD5sum(path);
 		printf("md5sum_file: %s\n", md5sum_file);//KILL ME
@@ -310,19 +330,25 @@ int getAudioFile(char* fileName, char* directoryUserConnected, int socket, char*
 	if(strcmp(H_FILEKO, response) == 0)
 			status = 1;
 	else{
-		int fd = open(path, O_WRONLY | O_CREAT);
+		int fd = open(path, O_CREAT|O_WRONLY,0644);
 
 		if(fd < 0){
+			printf("Fd: %d\n", fd);
 			write(1, ERROR_OPENING_FILE, strlen(ERROR_OPENING_FILE));
 		}	//if
 		else{
 
-			do{
+			while(1){
+				bzero(buffer, 255);
 				num_bytes = read(socket, buffer, 255);
+				if(strcmp(buffer, H_EOF) == 0){
+						printf("EOF? -> %s\n", buffer);
+						break;
+				}
 				write(fd, buffer, num_bytes);
-				clearBuffer(buffer);
-			}	while(num_bytes == 255);	//do-while
+			}	//while
 
+			bzero(buffer, 255);
 			read(socket, buffer, 255);
 
 			printf("Path: %s\n", path);//KILL ME
@@ -334,7 +360,7 @@ int getAudioFile(char* fileName, char* directoryUserConnected, int socket, char*
 
 			if(strcmp(buffer, md5sum_file) == 0){
 				sprintf(buffer, FILE_TRANSFER_OK, usernameConnected, fileName);
-				write(1, buffer, 32);
+				write(1, buffer, strlen(buffer));
 			}	//if
 			else
 				write(1, FILE_TRANSFER_KO, strlen(FILE_TRANSFER_KO));

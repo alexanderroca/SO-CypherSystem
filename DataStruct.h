@@ -13,6 +13,7 @@
 #include <assert.h>
 #include <sys/wait.h>
 #include <semaphore.h>
+#include <sys/stat.h>
 
 //defines tcpServer
 #define PORT 8550
@@ -88,7 +89,7 @@
 #define H_CONOK "[CONOK]"
 #define H_CONKO "[CONKO]"
 #define H_DOWNAUDIO "[DOWNAUDIO]"
-#define H_MD5OK "[MD5OK]"
+#define H_MD5OK "[MD5OK]\0"
 #define H_MD5KO "[MD5KO]"
 #define H_EOF "[EOF]"
 #define H_FILEKO "[FILEKO]\0"
