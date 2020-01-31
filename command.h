@@ -16,7 +16,7 @@ void showConnections(uint16_t port);
 void connectToPort(uint16_t port, char* ipToConnect, Info * info_client);
 void say(char * user, char * data, Info * info_client);
 void broadcast(char * data, Info * info_client);
-connectionInfo receiveCD(int sockfd);
+void receiveCD(int sockfd, connectionInfo * ci);
 void showAudios(char* userName, Info * info_client);
 void downloadAudios(char * user, char * audio_file, Info * info_client);
 void exit();

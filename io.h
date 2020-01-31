@@ -30,7 +30,7 @@ int getAudioFile(char* fileName, char* directoryUserConnected, int socket, char*
 int sendSocketMSG(int sockfd, char * data, int type);
 
 //function to recieve data from sockets
-char * receiveSocketMSG(int sockfd, int * type);
+int receiveSocketMSG(int sockfd, int * type, char * data);
 
 connectionInfo checkUserConnnected(char* userName, LlistaBid list);
 
@@ -67,6 +67,6 @@ void checkCMDShow(char **ptr, int c, Info * info_client);
 //makes the checks to see if the exit command has been correctly entered
 int checkCMDExit(int c);
 
-connectionInfo setupCI(configurationData cd);
+void setupCI(configurationData cd, connectionInfo * ci);
 
 #endif

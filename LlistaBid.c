@@ -119,7 +119,19 @@ void LLISTABID_inserir (LlistaBid* l, connectionInfo ci){
     //deal with error
   } //if
   else{
-		aux -> ci = ci;
+    //init ci
+    aux -> ci.userName = (char*)malloc(sizeof(char) * (strlen(ci.userName) + 1));
+    aux -> ci.audioDirectory = (char*)malloc(sizeof(char) * (strlen(ci.audioDirectory) + 1));
+    aux -> ci.ip = (char*)malloc(sizeof(char) * (strlen(ci.ip) + 1));
+
+    //copy data
+		strcpy(aux -> ci.userName, ci.userName);
+    strcpy(aux -> ci.audioDirectory, ci.audioDirectory);
+    strcpy(aux -> ci.ip, ci.ip);
+    aux -> ci.socket = ci.socket;
+    aux -> ci.port = ci.port;
+
+    //assign pointers
 		aux -> seg = l -> pdi;
     aux -> ant = l -> pdi -> ant;
 		l -> pdi -> ant = aux;
@@ -127,7 +139,6 @@ void LLISTABID_inserir (LlistaBid* l, connectionInfo ci){
 		l -> pdi = aux;
   } //else
 }
-
 
 /*
 This function returns the number that is in the PDI
@@ -144,7 +155,6 @@ connectionInfo LLISTABID_consulta (LlistaBid l){
 	return ci;
 }
 
-
 /*
 This procedure clears the PDI by making a free one of the node once it is left out of the list
 */
@@ -155,6 +165,11 @@ void LLISTABID_esborra (LlistaBid* l){
 		l -> pdi -> seg -> ant = l -> pdi -> ant;
 		n = l -> pdi;
 		l -> pdi = l -> pdi -> seg;
+
+    //free memaory
+    free(n -> ci.userName);
+    free(n -> ci.audioDirectory);
+    free(n -> ci.ip);
 		free (n);
 	}
 }

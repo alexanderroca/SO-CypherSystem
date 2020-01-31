@@ -61,11 +61,13 @@ void *userAsClient(void *arg){
 
   //connected_list.num_connected = 0;
   //connected_list.info = (connectedInfo*)malloc(sizeof(connectedInfo));
+  user_input = (char*)malloc(sizeof(char));
   buffer = (char*)malloc(sizeof(char) * (strlen(info_client->cd.userName) + 5));
   //SEM_constructor_with_name(&sem_clientServer, ftok("tcpServer.c", atoi("clientServer")));
 
   while (!exit) {
 
+    printf("waiting intput\n");
     //SEM_wait(&sem_clientServer);
     sprintf(buffer, "$%s: ", info_client->cd.userName);
     write(1, buffer, strlen(buffer));
@@ -80,11 +82,13 @@ void *userAsClient(void *arg){
       write(1, ERR_UNKNOWNCMD, strlen(ERR_UNKNOWNCMD));
     }//else
 
+    printf("post check\n");
     //SEM_signal(&sem_clientServer);
 
   }//while
 
   free(buffer);
+  free(user_input);
 
   return NULL;
 }
@@ -93,11 +97,12 @@ void *userAsClient(void *arg){
 void *dedicatedServer(void *arg){
   int connected = 1;
   int msg_type = 0;
-  char * message = NULL;
+  char * message;
   char * show_message;
   char * client_name;
 
   connectionInfo * ci = (connectionInfo*) arg;
+  message = (char*)malloc(sizeof(char));
   show_message = (char*)malloc(sizeof(char));
   client_name = (char*)malloc(sizeof(char) * (strlen(ci->userName) + 5));
   sprintf(client_name, USERCLIENT, ci->userName);
@@ -106,8 +111,9 @@ void *dedicatedServer(void *arg){
   printf("Num socket: %d\n", ci->socket); //KILL ME
 
   while (connected) {
-    message = receiveSocketMSG(ci->socket, &msg_type);
-    printf("post msg received\n");//KILL ME
+    printf("waiting to receive message....\n");//KILL ME
+    receiveSocketMSG(ci->socket, &msg_type, message);
+    printf("post msg received message == %s\n", message);//KILL ME
     connected = DSMsgHandler(message, msg_type, client_name, ci);
   }
 
@@ -118,6 +124,7 @@ void *dedicatedServer(void *arg){
 }
 
 int DSMsgHandler(char * message, int type, char * client_name, connectionInfo * ci){
+  printf("message DSM == %s\n", message);
   int connected = 1;//in  message exit turn this to false
   char * path;
 
@@ -162,7 +169,11 @@ void *userAsServer(void *arg){
   connectionInfo DS_ci;
   connectionInfo ci_test;//KILL ME
 
-  ci = setupCI(info_server->cd);
+  ci.userName = (char*)malloc(sizeof(char));
+  ci.audioDirectory = (char*)malloc(sizeof(char));
+  ci.ip = (char*)malloc(sizeof(char));
+
+  setupCI(info_server->cd, &ci);
 
   int sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
   if(sockfd < 0){
@@ -199,12 +210,13 @@ void *userAsServer(void *arg){
       //sem_wait(&mutexExclusioUserConnect);
       //ts->clients.sockets[ts->clients.num_sockets].socket = newsock;
       ci.socket = newsock;
+      printf("ci.socket == %d\n", ci.socket);
       printf("pre access list\n");
       LLISTABID_vesFinal(&(info_server->connections));
       LLISTABID_inserir(&(info_server->connections), ci);
       ci_test = LLISTABID_consulta(info_server->connections);//KILL ME
 
-      printf("File descriptor socket: %d ", ci_test.socket);//KILL ME
+      printf("File descriptor socket: %d\n", ci_test.socket);//KILL ME
       //ts->clients.num_sockets++;
       //ts->clients.sockets = (configurationData*)realloc(ts->clients.sockets, sizeof(int) * (ts->clients.num_sockets + 1));
       //ts->clients.sockets[ts->clients.num_sockets - 1].userName = ts->cd.userName;
@@ -218,6 +230,10 @@ void *userAsServer(void *arg){
       //sem_post(&mutexExclusioUserConnect); //Falta destruir el semafor quan es fa exit o Ctrl-C
     } //else
   }//While(1)
+
+  free(ci.userName);
+  free(ci.audioDirectory);
+  free(ci.ip);
 
   return (void *) 0;
 }

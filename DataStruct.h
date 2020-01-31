@@ -63,7 +63,7 @@
 ////////////////////Defines for message sending protocol////////////////////////
 
 //All messages must be composed of PROTOCOL_MESSAGE
-#define PROTOCOL_MESSAGE "%X %s %d %s\n" //Message Type, Headder, Length, Data
+#define PROTOCOL_MESSAGE "%X %s %s %s\n" //Message Type, Headder, Length, Data
 
 //MT stands for message type
 #define MT_CONFIGDATA 0x00
