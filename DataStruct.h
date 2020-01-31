@@ -13,6 +13,7 @@
 #include <assert.h>
 #include <sys/wait.h>
 #include <semaphore.h>
+#include <sys/stat.h>
 
 //defines tcpServer
 #define PORT 8550
@@ -63,7 +64,7 @@
 ////////////////////Defines for message sending protocol////////////////////////
 
 //All messages must be composed of PROTOCOL_MESSAGE
-#define PROTOCOL_MESSAGE "%X %s %d %s\n" //Message Type, Headder, Length, Data
+#define PROTOCOL_MESSAGE "%X %s %s %s\n" //Message Type, Headder, Length, Data
 
 //MT stands for message type
 #define MT_CONFIGDATA 0x00
@@ -88,7 +89,8 @@
 #define H_EXIT "[]"
 #define H_CONOK "[CONOK]"
 #define H_CONKO "[CONKO]"
-#define H_MD5OK "[MD5OK]"
+#define H_DOWNAUDIO "[DOWNAUDIO]"
+#define H_MD5OK "[MD5OK]\0"
 #define H_MD5KO "[MD5KO]"
 #define H_EOF "[EOF]"
 #define H_FILEKO "[FILEKO]\0"

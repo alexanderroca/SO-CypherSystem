@@ -62,9 +62,13 @@ void showConnections(uint16_t port){
 
 void connectToPort(uint16_t portToConnect, char* ipToConnect, Info * info_client) {
 
-  //configurationData cd;
   connectionInfo ci;
 
+  ci.userName = (char*)malloc(sizeof(char) + 1);
+  ci.audioDirectory = (char*)malloc(sizeof(char) + 1);
+  ci.ip = (char*)malloc(sizeof(char) + 1);
+
+  setupCI(info_client->cd, &ci);
   //Comprovem la validesa del port
   if(portToConnect < atoi(MIN_PORT) && portToConnect > atoi(MAX_PORT)){
     fprintf(stderr, "Error: %d es un port invalid\n", portToConnect);
@@ -110,43 +114,44 @@ void connectToPort(uint16_t portToConnect, char* ipToConnect, Info * info_client
   } //if
 
   //cl->num_connected++;
+
   write(1, "Connecting...\n", strlen("Connecting...\n"));
   LLISTABID_vesFinal(&(info_client->connections));
-  ci = receiveCD(sockfd);
+  receiveCD(sockfd, &ci);
   LLISTABID_inserir(&(info_client->connections), ci);
 
-  printf("socket == %d\n", ci.socket);
-  printf("user connected %s\n", ci.userName);//KILL ME
-  printf("audio audioDirectory %s\n", ci.audioDirectory);//KILL ME
-  printf("ip %s\n", ci.ip);//KILL ME
-  printf("port %d\n", ci.port);//KILL ME
+  free(ci.userName);
+  free(ci.audioDirectory);
+  free(ci.ip);
+  //printf("socket == %d\n", ci.socket);
+  //printf("user connected %s\n", ci.userName);//KILL ME
+  //printf("audio audioDirectory %s\n", ci.audioDirectory);//KILL ME
+  //printf("ip %s\n", ci.ip);//KILL ME
+  //printf("port %d\n", ci.port);//KILL ME
   //sprintf(buffer, "%d connected: %s\n", portToConnect, cd.userName);
   //write(1, buffer, strlen(buffer));
-
 }//func
 
-connectionInfo receiveCD(int sockfd){
+void receiveCD(int sockfd, connectionInfo * ci){
   char* buffer;
+  int port;
   int type = 8;
-  connectionInfo ci;
 
-  buffer = (char*)malloc(sizeof(char));
-  ci.socket = sockfd;
+  buffer = malloc(sizeof(char));
 
-  ci.userName = receiveSocketMSG(sockfd, &type);
+  ci->socket = sockfd;
+  receiveSocketMSG(sockfd, &type, ci->userName);
+  receiveSocketMSG(sockfd, &type, ci->audioDirectory);
+  receiveSocketMSG(sockfd, &type, ci->ip);
 
-  ci.audioDirectory = receiveSocketMSG(sockfd, &type);
+  receiveSocketMSG(sockfd, &type, buffer);
+  //printf("buffer in receive CD == %s\n", buffer);//KILL ME
+  port = atoi(buffer);
+  ci->port = (uint16_t)port;
 
-  ci.ip = receiveSocketMSG(sockfd, &type);
-
-  buffer = receiveSocketMSG(sockfd, &type);
-  ci.port = (uint16_t)atoi(buffer);
-
-  printf("type post receive == %d\n", type);//KILL ME
-
+  free(buffer);
   //printf("Llegim el bytes del fitxer d'audio\n");
   //getAudioFile("Hymn of the Soviet Union - Russian Red Army Choir.mp3", ci.audioDirectory, sockfd, ci.userName);//KILL ME
-  return ci;
 }//func
 
 void say(char * user, char * data, Info * info_client){
@@ -166,12 +171,13 @@ void say(char * user, char * data, Info * info_client){
 
     do{
       ci = LLISTABID_consulta(info_client->connections);
-
       if (strcasecmp(ci.userName, user) == 0) {
-        printf("MSG to send == %s\n", message);
+        printf("MSG to send == %s\n", message);//KILL ME
         sendSocketMSG(ci.socket, message, 2);
         found = 1;
       }//if
+
+      LLISTABID_avanca(&(info_client->connections));
 
     }while (!LLISTABID_fi(info_client->connections) && !found);
 
@@ -180,6 +186,7 @@ void say(char * user, char * data, Info * info_client){
 
     }//if
   }//else
+  free(message);
 }//func
 
 void broadcast(char * data, Info * info_client){
