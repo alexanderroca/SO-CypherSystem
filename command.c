@@ -64,11 +64,14 @@ void connectToPort(uint16_t portToConnect, char* ipToConnect, Info * info_client
 
   connectionInfo ci;
 
+  /*
   ci.userName = (char*)malloc(sizeof(char) + 1);
   ci.audioDirectory = (char*)malloc(sizeof(char) + 1);
   ci.ip = (char*)malloc(sizeof(char) + 1);
 
   setupCI(info_client->cd, &ci);
+  */
+  
   //Comprovem la validesa del port
   if(portToConnect < atoi(MIN_PORT) && portToConnect > atoi(MAX_PORT)){
     fprintf(stderr, "Error: %d es un port invalid\n", portToConnect);
@@ -140,11 +143,11 @@ void receiveCD(int sockfd, connectionInfo * ci){
   buffer = malloc(sizeof(char));
 
   ci->socket = sockfd;
-  receiveSocketMSG(sockfd, &type, ci->userName);
-  receiveSocketMSG(sockfd, &type, ci->audioDirectory);
-  receiveSocketMSG(sockfd, &type, ci->ip);
+  receiveSocketMSG(sockfd, &type, &(ci->userName));
+  receiveSocketMSG(sockfd, &type, &(ci->audioDirectory));
+  receiveSocketMSG(sockfd, &type, &(ci->ip));
 
-  receiveSocketMSG(sockfd, &type, buffer);
+  receiveSocketMSG(sockfd, &type, &(buffer));
   //printf("buffer in receive CD == %s\n", buffer);//KILL ME
   port = atoi(buffer);
   ci->port = (uint16_t)port;

@@ -467,11 +467,13 @@ int sendSocketMSG(int sockfd, char * data, int type){
 	return 1;
 }//func
 
-int receiveSocketMSG(int sockfd, int * type, char * data){
+int receiveSocketMSG(int sockfd, int * type, char ** data){
 	char * buffer, * aux;
 	int c, num_camps, type_int, length;
 	char **ptr; //ptr[0] = Type ptr[1] = header ptr[2] = length
+	*data = malloc(sizeof(char));
 
+	length = 0;
 	buffer = readUntil(sockfd, '\n');
 	printf("message received-%s\n", buffer);
 	ptr = (char**)malloc(sizeof(char*));
@@ -483,28 +485,28 @@ int receiveSocketMSG(int sockfd, int * type, char * data){
 		ptr[c] = aux;
 	}
 
-	printf("ptr[2] == %s\n", ptr[2]);
 	length = atoi(ptr[2]);
 	num_camps = c;
 	type_int = atoi(ptr[0]);
 	*type = type_int;
 
-	printf("length == %d\n", type_int);//KILL ME
+	printf("length == %d\n", length);//KILL ME
 	switch (type_int) {
 
 		case 0://RECEIVE CD
 		case 2://RECEIVE MSG
 		case 3://RECEIVE BROADCAST
 			//separem el missatge sencer en les diferents parts separades per " "
-			data = realloc(data, sizeof(char) * (length + 1));
-			data[length] = '\0';//KILL ME
-			printf("strlen post realloc == %ld\n", strlen(data));//KILL ME
+			*data = realloc(*data, sizeof(char) * (length + 1));
+
 			//guardem totes la info rebuda en un sol string on nomes hi ha dades utils
-			strcpy(data, ptr[3]);
+			strcpy(*data, ptr[3]);
 			for (c = 4; c < num_camps; c++) {
-				sprintf(data, "%s %s", data, ptr[c]);
+				sprintf(*data, "%s %s", *data, ptr[c]);
 			}//for
-			printf("data in receiveSocketMSG == %s\n", data);
+
+			printf("strlen post copy == %ld\n", strlen(*data));//KILL ME
+			printf("data in receiveSocketMSG == %s\n", *data);//KILL ME
 
 			break;
 		case 1:
@@ -515,39 +517,39 @@ int receiveSocketMSG(int sockfd, int * type, char * data){
 			if (strcmp(ptr[1], H_SHOWAUDIO) == 0) {
 
 				printf("in RCV show audio\n");//KILL ME
-				data = realloc(data, sizeof(char) * (strlen(FILL_SHOWAUDIO) + 1));
-				strcpy(data, FILL_SHOWAUDIO);
+				*data = realloc(*data, sizeof(char) * (strlen(FILL_SHOWAUDIO) + 1));
+				strcpy(*data, FILL_SHOWAUDIO);
 			}else{
 
 				printf("in RCV list audio\n");//KILL ME
-				data = realloc(data, sizeof(char) * (length + 1));
+				*data = realloc(*data, sizeof(char) * (length + 1));
 
 				//guardem totes la info rebuda en un sol string on nomes hi ha dades utils
-				strcpy(data, ptr[3]);
+				strcpy(*data, ptr[3]);
 				for (c = 4; c < num_camps; c++) {
-					sprintf(data, "%s %s", data, ptr[c]);
+					sprintf(*data, "%s %s", *data, ptr[c]);
 				}//for
 			}
 
-			printf("data in RCV == %s\n", data);//KILL ME
+			printf("data in RCV == %s\n", *data);//KILL ME
 			break;
 		case 5:
 		//DOWNLOAD AUDIOS
 			printf("in receeive audio download\n");//KILL ME
 			if (strcmp(ptr[1], H_AUDIOREQ) == 0) {
-				data = realloc(data, sizeof(char) * strlen(ptr[3]));
-				strcpy(data, ptr[3]);
+				*data = realloc(*data, sizeof(char) * strlen(ptr[3]));
+				strcpy(*data, ptr[3]);
 
 			}else{
 				if (strcmp(ptr[1], H_AUDIORES) == 0) {
 					length = atoi(ptr[2]);
-					data = realloc(data, sizeof(char) * length);
-					strcpy(data, ptr[3]);
+					*data = realloc(*data, sizeof(char) * length);
+					strcpy(*data, ptr[3]);
 
 				}else{
 					if (strcmp(ptr[1], H_EOF) == 0) {
-						data = realloc(data, sizeof(char) * 32);
-						strcpy(data, ptr[3]);
+						*data = realloc(*data, sizeof(char) * 32);
+						strcpy(*data, ptr[3]);
 					}else{
 						//cas que no existeixi el audio file demanat
 						write(1, ERR_UNKNOWNFILE, strlen(ERR_UNKNOWNFILE));
@@ -879,13 +881,13 @@ void checkCMDSay(char **ptr, int c, Info * info_client){
 			ok = 0;
 		}else{
 			i = 2;
-			user = (char*)realloc(user, sizeof(char) * (strlen(ptr[1])));
+			user = (char*)realloc(user, sizeof(char) * (strlen(ptr[1]) + 1));
 			strcpy(user, ptr[1]);
 
 			//recorrem totes les paraules fins trobar la que inicia el text o ens quedem sense
 			while (i < c && ptr[i][0] != '"') {
 
-				user = (char*)realloc(user, sizeof(char) * (strlen(user) + strlen(ptr[i]) + 1));
+				user = (char*)realloc(user, sizeof(char) * (strlen(user) + strlen(ptr[i]) + 2));
 				sprintf(user, "%s %s", user, ptr[i]);
 				i++;
 			}
@@ -897,7 +899,7 @@ void checkCMDSay(char **ptr, int c, Info * info_client){
 				ok = 0;
 			}else{
 
-				message = realloc(message, sizeof(char) * strlen(ptr[i]));
+				message = realloc(message, sizeof(char) * (strlen(ptr[i]) + 1));
 				strcpy(message, ptr[i]);
 				i++;
 
@@ -911,7 +913,7 @@ void checkCMDSay(char **ptr, int c, Info * info_client){
 
 					buffer = (char*)realloc(buffer, sizeof(char) * (strlen(ptr[i]) + 1));
 					sprintf(buffer, " %s", ptr[i]);
-					message = realloc(message, sizeof(char) * (strlen(message) + strlen(buffer)));
+					message = realloc(message, sizeof(char) * (strlen(message) + strlen(buffer) + 2));
 					strcat(message, buffer);
 					i++;
 				}//while
@@ -924,6 +926,14 @@ void checkCMDSay(char **ptr, int c, Info * info_client){
 			}//else
 		}//else
 	}//else
+
+	printf("strlen message == %ld\n", strlen(message));
+
+	if (strlen(message) > 80) {
+		write(1, "Please send shorter messages.\n",
+				strlen("Please send shorter messages.\n"));
+		ok = 0;
+	}//if
 
 	if (ok) {
 
@@ -1260,7 +1270,7 @@ void readDirectoryUserConnected(int socket){
 	sendSocketMSG(socket, NULL, 4);
 
 	buffer = (char*)malloc(sizeof(char));
-	receiveSocketMSG(socket, &type, buffer);
+	receiveSocketMSG(socket, &type, &(buffer));
 	printf("buffer audio list == %s\n", buffer);//KILL ME
 
 	if(buffer == NULL){
@@ -1278,6 +1288,7 @@ void readDirectoryUserConnected(int socket){
 		showAudioFiles(files, c);
 	}	//else
   free(files);
+	free(buffer);
 }//func
 
 void showAudioFiles(char** files, int num_files){

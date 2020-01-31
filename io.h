@@ -30,7 +30,7 @@ int getAudioFile(char* fileName, char* directoryUserConnected, int socket, char*
 int sendSocketMSG(int sockfd, char * data, int type);
 
 //function to recieve data from sockets
-int receiveSocketMSG(int sockfd, int * type, char * data);
+int receiveSocketMSG(int sockfd, int * type, char ** data);
 
 connectionInfo checkUserConnnected(char* userName, LlistaBid list);
 

@@ -1,7 +1,7 @@
 #include "tcpServer.h"
 
 sem_t mutexExclusioUserConnect;
-int exit;
+int end;
 
 //Creem dos threads
 int serverClient(configurationData cd){
@@ -9,7 +9,7 @@ int serverClient(configurationData cd){
   pthread_t t_client, t_server;
   int estat = 0;
   Info info_client, info_server;
-  exit = 0;
+  end = 0;
   //ThreadServer ts;
   //semaphore sem_clientServer;
 
@@ -66,7 +66,7 @@ void *userAsClient(void *arg){
   buffer = (char*)malloc(sizeof(char) * (strlen(info_client->cd.userName) + 5));
   //SEM_constructor_with_name(&sem_clientServer, ftok("tcpServer.c", atoi("clientServer")));
 
-  while (!exit) {
+  while (!end) {
 
     printf("waiting intput\n");
     //SEM_wait(&sem_clientServer);
@@ -76,7 +76,7 @@ void *userAsClient(void *arg){
     user_input = readUntil(0, '\n');
 
     if (strlen(user_input)) {
-      exit = checkCommand(user_input, info_client);
+      end = checkCommand(user_input, info_client);
 
     }else{
 
@@ -103,7 +103,6 @@ void *dedicatedServer(void *arg){
   char * client_name;
 
   connectionInfo * ci = (connectionInfo*) arg;
-  message = (char*)malloc(sizeof(char));
   show_message = (char*)malloc(sizeof(char));
   client_name = (char*)malloc(sizeof(char) * (strlen(ci->userName) + 5));
   sprintf(client_name, USERCLIENT, ci->userName);
@@ -113,9 +112,10 @@ void *dedicatedServer(void *arg){
 
   while (connected) {
     printf("waiting to receive message....\n");//KILL ME
-    receiveSocketMSG(ci->socket, &msg_type, message);
+    receiveSocketMSG(ci->socket, &msg_type, &(message));
     printf("post msg received message == %s\n", message);//KILL ME
     connected = DSMsgHandler(message, msg_type, client_name, ci);
+    free(message);
   }
 
   free(show_message);
@@ -197,7 +197,7 @@ void *userAsServer(void *arg){
 
   listen(sockfd, 5);
 
-  while(!exit){
+  while(!end){
     struct sockaddr_in c_addr;
     socklen_t c_len = sizeof(c_addr);
 
