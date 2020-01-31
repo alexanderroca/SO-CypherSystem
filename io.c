@@ -410,9 +410,9 @@ int sendSocketMSG(int sockfd, char * data, int type){
 			//DOWNLOAD_AUDIOS
 			printf("in sendSocketMSG download audios\n");//KILL ME
 			length = strlen(data);
-			message = (char*)malloc(sizeof(char) * (length + strlen(H_DOWNAUDIO) + 10));
+			message = (char*)malloc(sizeof(char) * (length + strlen(H_AUDIOREQ) + 10));
 
-			sprintf(message, PROTOCOL_MESSAGE, MT_DOWNAUDIO, H_DOWNAUDIO, length, data);
+			sprintf(message, PROTOCOL_MESSAGE, MT_DOWNAUDIO, H_AUDIOREQ, length, data);
 			printf("message sent == %s\n", message);//KILL ME
 			write(sockfd, message, strlen(message));
 			free(message);
@@ -429,7 +429,7 @@ int sendSocketMSG(int sockfd, char * data, int type){
 
 char * receiveSocketMSG(int sockfd, int * type){
 	char * data,* buffer, * aux;
-	int c, num_camps, type_int;
+	int c, num_camps, type_int, length;
 	char **ptr; //ptr[0] = Type ptr[1] = header ptr[2] = length
 
 	buffer = readUntil(sockfd, '\n');
@@ -491,8 +491,27 @@ char * receiveSocketMSG(int sockfd, int * type){
 		case 5:
 		//DOWNLOAD AUDIOS
 			printf("in receeive audio download\n");//KILL ME
-			data = realloc(data, sizeof(char) * strlen(ptr[3]));
-			strcpy(data, ptr[3]);
+			if (strcmp(ptr[1], H_AUDIOREQ) == 0) {
+				data = realloc(data, sizeof(char) * strlen(ptr[3]));
+				strcpy(data, ptr[3]);
+
+			}else{
+				if (strcmp(ptr[1], H_AUDIORES) == 0) {
+					length = atoi(ptr[2]);
+					data = realloc(data, sizeof(char) * length);
+					strcpy(data, ptr[3]);
+
+				}else{
+					if (strcmp(ptr[1], H_EOF) == 0) {
+						data = realloc(data, sizeof(char) * 32);
+						strcpy(data, ptr[3]);
+					}else{
+						//cas que no existeixi el audio file demanat
+						write(1, ERR_UNKNOWNFILE, strlen(ERR_UNKNOWNFILE));
+					}//else
+				}//else
+			}//else
+
 
 			break;
 		case 6:
@@ -514,23 +533,129 @@ char * receiveSocketMSG(int sockfd, int * type){
 }//func
 
 /*
-int sendSocketReply(int type, int okko){
+int sendServerCheck(int sockfd, int type, char * data, int ok){
+	char * message;
+	int length;
+
+	length = strlen(data);
 
 	switch (type) {
 		case 1:
+			if (ok) {
+				message = (char*)malloc(sizeof(char) * (strlen(H_CONOK) + length + 5));
+				sprintf(message, PROTOCOL_MESSAGE, MT_CONNECTION, H_CONOK, length, data);
+
+			}else{
+				message = (char*)malloc(sizeof(char) * (strlen(H_CONKO) + length + 5));
+				sprintf(message, PROTOCOL_MESSAGE, MT_CONNECTION, H_CONKO, length, data);
+
+			}
+
+			write(sockfd, message, strlen(message));
+			free(message);
+
+		break;
+		case 2://Only possible response MSGOK?
+		case 3://Same reply for say & broadcast
+			message = (char*)malloc(sizeof(char) * (strlen(H_MSGOK) + 5));
+			sprintf(message, PROTOCOL_MESSAGE, MT_SAY, H_MSGOK, 0, NULL);
+
+			write(sockfd, message, strlen(message));
+			free(message);
+
+		case 5://only MD5SUM reply
+			message = (char*)malloc(sizeof(char) * (strlen(H_AUDIOKO) + 5));
+			sprintf(message, PROTOCOL_MESSAGE, MT_DOWNAUDIO, H_AUDIOKO, 0, NULL);
+
+			write(sockfd, message, strlen(message));
+			free(message);
+
+		break;
+		case 6:
+			if (ok) {
+				message = (char*)malloc(sizeof(char) * (strlen(H_CONOK) + 5));
+				sprintf(message, PROTOCOL_MESSAGE, MT_EXIT, H_CONOK, 0, NULL);
+
+			}else{
+				message = (char*)malloc(sizeof(char) * (strlen(H_CONKO) + 5));
+				sprintf(message, PROTOCOL_MESSAGE, MT_EXIT, H_CONKO, 0, NULL);
+			}
+
+			write(sockfd, message, strlen(message));
+			free(message);
+
+		break;
+		default:
+			write(1, "Error Default criteria met in sendServerCheck\n",
+				strlen("Error Default criteria met in sendServerCheck\n"));
+
+		break;
+	}//switch
+	return 1;
+
+}
+
+void receiveServerCheck(int sockfd, char * data){
+	char * buffer, * aux;
+	int c, type, length;
+	char **ptr; //ptr[0] = Type ptr[1] = header ptr[2] = length
+
+	buffer = readUntil(sockfd, '\n');
+	printf("serverCheck received-%s\n", buffer);//KILL ME
+	ptr = (char**)malloc(sizeof(char*));
+
+	for (c = 0, aux = strtok (buffer, " ");
+					aux != NULL; aux = strtok (NULL, " "), c++){
+
+		ptr = realloc (ptr, sizeof (char *) * (c + 2));
+		ptr[c] = aux;
+	}//for
+
+	type = atoi(ptr[0]);
+	length = atoi(ptr[2]);
+
+	switch (type) {
+		case 1:
+			if (strcmp(ptr[1], H_CONOK) == 0) {
+				data = realloc(data, sizeof(char) * (length + 5));
+
+			}else{
+				data = realloc(data, strlen(ptr[1]));
+				strcpy(data, ptr[2]);
+
+			}
+
 		break;
 		case 2:
 		case 3:
-		break;
-		case 5://only MD5SUM reply
-		break;
 		case 6:
+			data = realloc(data, sizeof(char) * strlen(ptr[1]));
+			strcpy(data, ptr[2]);
+
 		break;
 		default:
+			write(1, "Error Default criteria met in receiveServerCheck\n",
+				strlen("Error Default criteria met in receiveServerCheck\n"));
+
 		break;
 	}//switch
+}//func
 
-	return 1;
+void sendMD5Check(int sockfd, int ok){
+	char * message;
+
+	if (ok) {
+		message = (char*)malloc(sizeof(char) * (strlen(H_MD5OK) + 5));
+		sprintf(message, PROTOCOL_MESSAGE, MT_DOWNAUDIO, H_MD5OK, 0, NULL);
+
+	}else{
+		message = (char*)malloc(sizeof(char) * (strlen(H_MD5KO) + 5));
+		sprintf(message, PROTOCOL_MESSAGE, MT_DOWNAUDIO, H_MD5KO, 0, NULL);
+
+	}
+
+	write(sockfd, message, strlen(message));
+	free(message);
 }
 */
 

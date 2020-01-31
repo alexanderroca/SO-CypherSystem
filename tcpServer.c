@@ -1,6 +1,7 @@
 #include "tcpServer.h"
 
 sem_t mutexExclusioUserConnect;
+int exit;
 
 //Creem dos threads
 int serverClient(configurationData cd){
@@ -8,6 +9,7 @@ int serverClient(configurationData cd){
   pthread_t t_client, t_server;
   int estat = 0;
   Info info_client, info_server;
+  exit = 0;
   //ThreadServer ts;
   //semaphore sem_clientServer;
 
@@ -56,7 +58,6 @@ void *userAsClient(void *arg){
   Info * info_client = (Info *) arg;
   char * user_input;
   char * buffer;
-  int exit = 0;
   //connectedList connected_list;
 
   //connected_list.num_connected = 0;
@@ -112,7 +113,7 @@ void *dedicatedServer(void *arg){
   }
 
   free(show_message);
-  free(message);
+  free(client_name);
 
   return NULL;
 }
@@ -142,6 +143,9 @@ int DSMsgHandler(char * message, int type, char * client_name, connectionInfo * 
       readAudioFile(path, ci->socket);
       write(1, client_name, strlen(client_name));
 		break;
+    case 6:
+      connected = 0;
+    break;
     default:
       write(1, "Error, Default DSMsgHandler triggered\n",
         strlen("Error, Default DSMsgHandler triggered\n"));
@@ -182,7 +186,7 @@ void *userAsServer(void *arg){
 
   listen(sockfd, 5);
 
-  while(1){
+  while(!exit){
     struct sockaddr_in c_addr;
     socklen_t c_len = sizeof(c_addr);
 
