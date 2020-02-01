@@ -92,7 +92,7 @@ void *userAsClient(void *arg){
   free(user_input);
 
   return NULL;
-}
+}//func
 
 //Servidor dedicat per client connectat al serverClient
 void *dedicatedServer(void *arg){

@@ -253,6 +253,7 @@ void downloadAudios(char * user, char * audio_file, Info * info_client) {
   } //if
   else{
 
+    printf("socket == %d audio_file == %s\n", socket, audio_file);
     sendSocketMSG(socket, audio_file, 5);
     getAudioFile(audio_file, info_client->cd.audioDirectory, socket, user);
   } //else

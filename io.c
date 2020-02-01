@@ -321,8 +321,12 @@ int getAudioFile(char* fileName, char* directoryUserConnected, int socket, char*
 	char buffer[255];
 	int num_bytes;
 	char* md5sum_file;
-	char* path = strcat(directoryUserConnected, "/");
-	path = strcat(path, fileName);
+	char* path;
+
+	path = (char*)malloc(sizeof(char) * (strlen(directoryUserConnected) + strlen(fileName) + 2));
+	sprintf(path, "%s/%s", directoryUserConnected, fileName);
+	//path = strcat(directoryUserConnected, "/");
+	//path = strcat(path, fileName);
 
 	//Check if file exists
 	char* response = get_message(socket, ']');
@@ -369,6 +373,8 @@ int getAudioFile(char* fileName, char* directoryUserConnected, int socket, char*
 
 		close(fd);
 	}	//else
+
+	free(path);
 
 	return status;
 }//func
@@ -450,9 +456,9 @@ int sendSocketMSG(int sockfd, char * data, int type){
 			printf("in sendSocketMSG download audios\n");//KILL ME
 			length = strlen(data);
 			itoa(length, c_length);
-			message = (char*)malloc(sizeof(char) * (length + strlen(H_DOWNAUDIO) + 10));
+			message = (char*)malloc(sizeof(char) * (length + strlen(H_AUDIOREQ) + 10));
 
-			sprintf(message, PROTOCOL_MESSAGE, MT_DOWNAUDIO, H_DOWNAUDIO, c_length, data);
+			sprintf(message, PROTOCOL_MESSAGE, MT_DOWNAUDIO, H_AUDIOREQ, c_length, data);
 			printf("message sent == %s\n", message);//KILL ME
 			write(sockfd, message, strlen(message));
 			free(message);
@@ -556,7 +562,6 @@ int receiveSocketMSG(int sockfd, int * type, char ** data){
 					}//else
 				}//else
 			}//else
-
 
 			break;
 		case 6:

@@ -90,7 +90,6 @@
 #define H_EXIT "[]"
 #define H_CONOK "[CONOK]"
 #define H_CONKO "[CONKO]"
-#define H_DOWNAUDIO "[DOWNAUDIO]"
 #define H_MD5OK "[MD5OK]\0"
 #define H_MD5KO "[MD5KO]"
 #define H_EOF "[EOF]"
