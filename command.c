@@ -71,7 +71,7 @@ void connectToPort(uint16_t portToConnect, char* ipToConnect, Info * info_client
 
   setupCI(info_client->cd, &ci);
   */
-  
+
   //Comprovem la validesa del port
   if(portToConnect < atoi(MIN_PORT) && portToConnect > atoi(MAX_PORT)){
     fprintf(stderr, "Error: %d es un port invalid\n", portToConnect);
@@ -210,6 +210,7 @@ void broadcast(char * data, Info * info_client){
       ci = LLISTABID_consulta(info_client->connections);
       printf("sending broadcast to socket %d\n", ci.socket);//KILL ME
       sendSocketMSG(ci.socket, message, 3);
+      LLISTABID_avanca(&(info_client->connections));
 
     }while (!LLISTABID_fi(info_client->connections));
 
@@ -218,51 +219,41 @@ void broadcast(char * data, Info * info_client){
 }//func
 
 void showAudios(char* userName, Info * info_client){
+  int socket;
+  char* buffer;
 
-  connectionInfo ci;
-  char* buffer = malloc(sizeof(char));
-
-  ci = checkUserConnnected(userName, info_client->connections);
-  if(ci.socket == -1){
+  buffer = malloc(sizeof(char));
+  socket = checkUserConnnected(userName, info_client->connections);
+  if(socket == -1){
+    buffer = realloc(buffer, sizeof(char) * (strlen(userName) + strlen(USER_NO_CONNECTED) + 5));
     sprintf(buffer, USER_NO_CONNECTED, userName);
     write(1, buffer, strlen(buffer));
+
   } //if
   else{
     //llegir directori d'audios
-     readDirectoryUserConnected(ci.socket);
+     readDirectoryUserConnected(socket);
   } //else
 
   free(buffer);
 }//func
 
 void downloadAudios(char * user, char * audio_file, Info * info_client) {
-  int found = 0;
-  connectionInfo ci;
+  int socket;
+  char* buffer;
 
-  LLISTABID_vesInici(&(info_client->connections));
+  buffer = malloc(sizeof(char));
+  socket = checkUserConnnected(user, info_client->connections);
 
-  if (LLISTABID_esBuida(info_client->connections)) {
-    write(1, ERR_NOUSERS, strlen(ERR_NOUSERS));
+  if(socket == -1){
+    buffer = realloc(buffer, sizeof(char) * (strlen(user) + strlen(USER_NO_CONNECTED) + 5));
+    sprintf(buffer, USER_NO_CONNECTED, user);
+    write(1, buffer, strlen(buffer));
 
-  }else{
-    while (!LLISTABID_fi(info_client->connections) && !found){
-      ci = LLISTABID_consulta(info_client->connections);
+  } //if
+  else{
 
-      if (strcmp(ci.userName, user) == 0) {
-        found = 1;
-
-      }else{
-        LLISTABID_avanca(&(info_client->connections));
-
-      }//else
-    }//while
-
-    if (!found) {
-      write(1, ERR_UNKNOWNUSER, strlen(ERR_UNKNOWNUSER));
-
-    }else{
-      sendSocketMSG(ci.socket, audio_file, 5);
-      getAudioFile(audio_file, info_client->cd.audioDirectory, ci.socket, ci.userName);
-    }//else
-  }//else
+    sendSocketMSG(socket, audio_file, 5);
+    getAudioFile(audio_file, info_client->cd.audioDirectory, socket, user);
+  } //else
 }//func

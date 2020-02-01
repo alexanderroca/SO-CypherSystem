@@ -430,7 +430,7 @@ int sendSocketMSG(int sockfd, char * data, int type){
 				printf("in audio list request send\n");//KILL ME
 				message = (char*)malloc(sizeof(char) * (length + strlen(H_SHOWAUDIO) + 10));
 
-				sprintf(message, PROTOCOL_MESSAGE, MT_SHOWAUDIO, H_SHOWAUDIO, c_length, data);
+				sprintf(message, PROTOCOL_MESSAGE, MT_SHOWAUDIO, H_SHOWAUDIO, c_length, " ");
 				printf("message sent == %s\n", message);//KILL ME
 				write(sockfd, message, strlen(message));
 			}else{
@@ -860,12 +860,10 @@ void checkCMDConnect(char **ptr, int c, Info * info_client) {
 void checkCMDSay(char **ptr, int c, Info * info_client){
 
 	char *user, *message;
-	char * buffer;
 	int i = 0;
 	int ok = 1;
 	char buffer_aux[100] = " ";//KILL ME
 
-	buffer = (char*)malloc(sizeof(char));
 	user = (char*)malloc(sizeof(char));
 	message = (char*)malloc(sizeof(char));
 
@@ -911,10 +909,8 @@ void checkCMDSay(char **ptr, int c, Info * info_client){
 						ok = 0;
 					}
 
-					buffer = (char*)realloc(buffer, sizeof(char) * (strlen(ptr[i]) + 1));
-					sprintf(buffer, " %s", ptr[i]);
-					message = realloc(message, sizeof(char) * (strlen(message) + strlen(buffer) + 2));
-					strcat(message, buffer);
+					message = (char*)realloc(message, sizeof(char) * (strlen(message) + strlen(ptr[i]) + 2));
+					sprintf(message, "%s %s", message, ptr[i]);
 					i++;
 				}//while
 
@@ -942,7 +938,6 @@ void checkCMDSay(char **ptr, int c, Info * info_client){
 		say(user, message, info_client);
 	}//if
 
-	free(buffer);
 	free(message);
 	free(user);
 	printf("post say\n");//KILL ME
@@ -963,11 +958,11 @@ void checkCMDSay(char **ptr, int c, Info * info_client){
 ******************************************************************************/
 void checkCMDBroadcast(char **ptr, int c, Info * info_client) {
 
-	char *message, *buffer;
+	char *message;
 	int i, ok;
 
 	ok = 1;
-	buffer = (char*)malloc(sizeof(char));
+	message = (char*)malloc(sizeof(char));
 
 	if (c < 2) {
 		ok = 0;
@@ -976,9 +971,10 @@ void checkCMDBroadcast(char **ptr, int c, Info * info_client) {
 	}else{
 
 		if (ptr[1][0] == '"') {
-
-			message = ptr[1];
+			message = realloc(message, sizeof(char) * (strlen(ptr[1]) + 1));
+			strcpy(message, ptr[1]);
 			i = 2;
+
 			while (i < c) {
 
 				//comprovem que no hi haigi mes arguments dels necesaris
@@ -988,9 +984,8 @@ void checkCMDBroadcast(char **ptr, int c, Info * info_client) {
 					ok = 0;
 				}
 
-				buffer = (char*)realloc(buffer, sizeof(char) * (strlen(ptr[i]) + 1));
-				sprintf(buffer, " %s", ptr[i]);
-				strcat(message, buffer);
+				message = (char*)realloc(message, sizeof(char) * (strlen(message) + strlen(ptr[i]) + 2));
+				sprintf(message, "%s %s", message, ptr[i]);
 				i++;
 			}//while
 		}else{
@@ -1003,14 +998,14 @@ void checkCMDBroadcast(char **ptr, int c, Info * info_client) {
 	if (ok && message[strlen(message) - 1] != '"') {
 		write(1, ERR_NOSPEACHMARKS, strlen(ERR_NOSPEACHMARKS));
 		ok = 0;
-	}
-
-	free(buffer);
+	}//if
 
 	if (ok) {
 
 		broadcast(message, info_client);
 	}//if
+
+	free(message);
 }//func
 
 /******************************************************************************
@@ -1028,55 +1023,63 @@ void checkCMDBroadcast(char **ptr, int c, Info * info_client) {
 ******************************************************************************/
 void checkCMDDownload(char **ptr, int c, Info * info_client) {
 
-	char *user, *buffer, *audio_file;
+	char *user, *audio_file;
 	int i, ok;
 	char buffer_aux[100] = " ";//KILL ME
 
 	ok = 1;
-	buffer = (char*)malloc(sizeof(char));
-	if (c < 3) {
+	user = (char*)malloc(sizeof(char));
+	audio_file = (char*)malloc(sizeof(char));
+
+	if (c < 4) {
 
 		ok = 0;
 		write(1, ERR_2FEWARGS, strlen(ERR_2FEWARGS));
 	}else{
 
-		if (strstr(ptr[1], AUDIO_FILE) != NULL) {
-
-			ok = 0;
-			write(1, ERR_ORDER, strlen(ERR_ORDER));
-		}else{
-
-			user = ptr[1];
-			i = 2;
-			while (i < (c - 1)) {
-
-				buffer = (char*)realloc(buffer, sizeof(char) * (strlen(ptr[i]) + 1));
-				sprintf(buffer, " %s", ptr[i]);
-				strcat(user, buffer);
-				i++;
-			}//while
-
-			if (strstr(ptr[i], AUDIO_FILE) != NULL) {
-
-				audio_file = ptr[i];
-			}else{
+		if (strcasecmp(ptr[1], CMD_SHOW_AUDIOS) == 0) {
+			if (strstr(ptr[2], AUDIO_FILE) != NULL) {
 
 				ok = 0;
-				write(1, ERR_NOAUDIO, strlen(ERR_NOAUDIO));
-				buffer = realloc(buffer, sizeof(char) * 64);
-				sprintf(buffer, "Audio file termination must be %s\n", AUDIO_FILE);
-				write(1, buffer, strlen(buffer));
-			}//else
-		}//esle
-	}//else
+				write(1, ERR_ORDER, strlen(ERR_ORDER));
+			}else{
 
-	free(buffer);
+				user = realloc(user, sizeof(char) * (strlen(ptr[2]) + 1));
+				strcpy(user, ptr[2]);
+				i = 3;
+				while (i < (c - 1)) {
+
+					user = (char*)realloc(user, sizeof(char) * (strlen(user) + strlen(ptr[i]) + 2));
+					sprintf(user, "%s %s", user, ptr[i]);
+					i++;
+				}//while
+
+				if (strstr(ptr[i], AUDIO_FILE) != NULL) {
+
+					audio_file = realloc(audio_file, sizeof(char) * (strlen(ptr[i]) + 2));
+					strcpy(audio_file, ptr[i]);
+				}else{
+
+					ok = 0;
+					write(1, ERR_NOAUDIO, strlen(ERR_NOAUDIO));
+					write(1, ERR_FILETERMINATION, strlen(ERR_FILETERMINATION));
+					write(1, AUDIO_FILE, strlen(AUDIO_FILE));
+				}//else
+			}//else
+		}else{
+			write(1, ERR_UNKNOWNCMD, strlen(ERR_UNKNOWNCMD));
+			ok = 0;
+		}//else
+	}//else
 
 	if(ok){
 		sprintf(buffer_aux, "downloading audio file %s from user %s\n", audio_file, user);//KILL ME
-		write(1, buffer_aux, strlen(buffer_aux));
-		downloadAudios(user, audio_file, info_client); //TODO: implement function
-	}
+		write(1, buffer_aux, strlen(buffer_aux));//KILL ME
+		downloadAudios(user, audio_file, info_client);
+	}//if
+
+	free(user);
+	free(audio_file);
 }//func
 
 /******************************************************************************
@@ -1125,11 +1128,11 @@ int checkCMDExit(int c){
 ******************************************************************************/
 void checkCMDShow(char **ptr, int c, Info * info_client){
 
-	char *user, *buffer;
+	char *user;
 	int i;
 	char buffer_aux[100] = " ";//KILL ME
 
-	buffer = (char*)malloc(sizeof(char));
+	user = (char*)malloc(sizeof(char));
 	if (c < 2) {
 
 		write(1, ERR_2FEWARGS, strlen(ERR_2FEWARGS));
@@ -1152,13 +1155,14 @@ void checkCMDShow(char **ptr, int c, Info * info_client){
 					write(1, ERR_2FEWARGS, strlen(ERR_2FEWARGS));
 				}else{
 
-					user = ptr[2];
+					user = realloc(user, sizeof(char) * (strlen(ptr[2]) + 1));
+					strcpy(user, ptr[2]);
 					i = 3;
+
 					while(i < c) {
 
-						buffer = (char*)realloc(buffer, sizeof(char) * (strlen(ptr[i]) + 1));
-						sprintf(buffer, " %s", ptr[i]);
-						strcat(user, buffer);
+						user = (char*)realloc(user, sizeof(char) * (strlen(ptr[i]) + strlen(user) + 2));
+						sprintf(user, "%s %s", user, ptr[i]);
 						i++;
 					}//while
 
@@ -1171,13 +1175,13 @@ void checkCMDShow(char **ptr, int c, Info * info_client){
 		}//else
 	}//else
 
-	free(buffer);
+	free(user);
 
 }//func
 
-connectionInfo checkUserConnnected(char* userName, LlistaBid list){
-  connectionInfo ci;
-  int i;
+int checkUserConnnected(char* userName, LlistaBid list){
+	connectionInfo ci;
+	int i, socket;
 	int found = 0;
 
 	if (LLISTABID_esBuida(list)) {
@@ -1189,24 +1193,29 @@ connectionInfo checkUserConnnected(char* userName, LlistaBid list){
 			ci = LLISTABID_consulta(list);
 
 			if (strcmp(userName, ci.userName) == 0) {
+				socket = ci.socket;
 				found = 1;
 			}
+
+			LLISTABID_avanca(&list);
 		} while(!LLISTABID_fi(list) && !found);
 	}//else
 
 	if (!found) {
-		ci.socket = -1;
+		socket = -1;
 	}//if
 
-  return ci;
+  return socket;
 }//func
 
 void replyDirectoryUserConnected(char* directory_name, int socket){
 
-  char* buffer = malloc(sizeof(char) * 1024);
+  char buffer[1024];
   pid_t pid;
   //Pipe
   int fd[2];
+
+	initString(buffer, 1024);
 
   if(initializationPipes(fd)){
     //Mostrar error Pipe Failed
@@ -1244,8 +1253,6 @@ void replyDirectoryUserConnected(char* directory_name, int socket){
       close(fd[READ_PIPE]);
     } //else
   } //else
-
-	free(buffer);
 }//func
 
 void createAudioListMSG(char * list){
@@ -1352,3 +1359,11 @@ void setupCI(configurationData cd, connectionInfo * ci){
 	strcpy(ci->ip, cd.ip);
 
 }//func
+
+void initString(char * string, int size){
+	int i;
+
+	for (i = 0; i < size; i++) {
+		string[i] = '\0';
+	}
+}

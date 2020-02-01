@@ -32,7 +32,7 @@ int sendSocketMSG(int sockfd, char * data, int type);
 //function to recieve data from sockets
 int receiveSocketMSG(int sockfd, int * type, char ** data);
 
-connectionInfo checkUserConnnected(char* userName, LlistaBid list);
+int checkUserConnnected(char* userName, LlistaBid list);
 
 void replyDirectoryUserConnected(char* directory_name, int socket);
 
@@ -68,5 +68,5 @@ void checkCMDShow(char **ptr, int c, Info * info_client);
 int checkCMDExit(int c);
 
 void setupCI(configurationData cd, connectionInfo * ci);
-
+void initString(char * string, int size);
 #endif

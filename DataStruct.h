@@ -40,6 +40,7 @@
 #define ERR_ORDER "Error, wrong argment order.\n"
 #define ERR_NOAUDIO "Error, no audio file extension found in audio file parameter. Audio file must not contain spaces!\n"
 #define ERR_NOSPEACHMARKS "Error, message must end with speachmarks.\n"
+#define ERR_FILETERMINATION "Audio file termination must be "
 #define TRANSFER_SUCCESS "File transfer completed for id: %d\n"
 #define TRANSFER_FAILURE "Error reading %s\n"
 #define RECIEVING_FILE "Receiving file...\n"
