@@ -528,13 +528,20 @@ int receiveSocketMSG(int sockfd, int * type, char ** data){
 			}else{
 
 				printf("in RCV list audio\n");//KILL ME
-				*data = realloc(*data, sizeof(char) * (length + 1));
+				if(strcmp(ptr[3], H_AUDIOKO) == 0){
+					*data = realloc(*data, sizeof(char) * (strlen(H_AUDIOKO) + 1));
+					strcpy(*data, H_AUDIOKO);
+				}	//if
+				else{
+					*data = realloc(*data, sizeof(char) * (length + 1));
 
-				//guardem totes la info rebuda en un sol string on nomes hi ha dades utils
-				strcpy(*data, ptr[3]);
-				for (c = 4; c < num_camps; c++) {
-					sprintf(*data, "%s %s", *data, ptr[c]);
-				}//for
+					//guardem totes la info rebuda en un sol string on nomes hi ha dades utils
+					strcpy(*data, ptr[3]);
+
+					for (c = 4; c < num_camps; c++) {
+						sprintf(*data, "%s %s", *data, ptr[c]);
+					}//for
+				}	//else
 			}
 
 			printf("data in RCV == %s\n", *data);//KILL ME
@@ -1273,7 +1280,12 @@ void replyDirectoryUserConnected(char* directory_name, int socket){
       close(fd[WRITE_PIPE]);
 
       num_bytes = read(fd[READ_PIPE], buffer, 1024);
-			createAudioListMSG(buffer);
+			if(num_bytes == 0)
+				sprintf(buffer, H_AUDIOKO);
+			else
+				createAudioListMSG(buffer);
+
+			printf("num_bytes = %d - buffer: %s\n", num_bytes, buffer);//KILL ME
 			sendSocketMSG(socket, buffer, 4);
 
       close(fd[READ_PIPE]);
@@ -1306,7 +1318,7 @@ void readDirectoryUserConnected(int socket){
 	receiveSocketMSG(socket, &type, &(buffer));
 	printf("buffer audio list == %s\n", buffer);//KILL ME
 
-	if(buffer == NULL){
+	if(strcmp(buffer, H_AUDIOKO) == 0){
 		write(1, AUDIO_NO_LIST_TITLE, strlen(AUDIO_NO_LIST_TITLE));
 	}	//if
 	else{
