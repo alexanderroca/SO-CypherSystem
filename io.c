@@ -342,9 +342,11 @@ int getAudioFile(char* fileName, char* directoryUserConnected, int socket, char*
 		}	//if
 		else{
 
+			printf("pre while 1\n");
 			while(1){
 				bzero(buffer, 255);
 				num_bytes = read(socket, buffer, 255);
+				printf("num_bytes == %d buffer == %s\n", num_bytes, buffer);
 				if(strcmp(buffer, H_EOF) == 0){
 						printf("EOF? -> %s\n", buffer);
 						break;
@@ -1064,44 +1066,39 @@ void checkCMDDownload(char **ptr, int c, Info * info_client) {
 	user = (char*)malloc(sizeof(char));
 	audio_file = (char*)malloc(sizeof(char));
 
-	if (c < 4) {
+	if (c < 3) {
 
 		ok = 0;
 		write(1, ERR_2FEWARGS, strlen(ERR_2FEWARGS));
 	}else{
 
-		if (strcasecmp(ptr[1], CMD_SHOW_AUDIOS) == 0) {
-			if (strstr(ptr[2], AUDIO_FILE) != NULL) {
+		if (strstr(ptr[1], AUDIO_FILE) != NULL) {
 
-				ok = 0;
-				write(1, ERR_ORDER, strlen(ERR_ORDER));
+			ok = 0;
+			write(1, ERR_ORDER, strlen(ERR_ORDER));
+		}else{
+
+			user = realloc(user, sizeof(char) * (strlen(ptr[2]) + 1));
+			strcpy(user, ptr[1]);
+			i = 2;
+			while (i < (c - 1)) {
+
+				user = (char*)realloc(user, sizeof(char) * (strlen(user) + strlen(ptr[i]) + 2));
+				sprintf(user, "%s %s", user, ptr[i]);
+				i++;
+			}//while
+
+			if (strstr(ptr[i], AUDIO_FILE) != NULL) {
+
+				audio_file = realloc(audio_file, sizeof(char) * (strlen(ptr[i]) + 2));
+				strcpy(audio_file, ptr[i]);
 			}else{
 
-				user = realloc(user, sizeof(char) * (strlen(ptr[2]) + 1));
-				strcpy(user, ptr[2]);
-				i = 3;
-				while (i < (c - 1)) {
-
-					user = (char*)realloc(user, sizeof(char) * (strlen(user) + strlen(ptr[i]) + 2));
-					sprintf(user, "%s %s", user, ptr[i]);
-					i++;
-				}//while
-
-				if (strstr(ptr[i], AUDIO_FILE) != NULL) {
-
-					audio_file = realloc(audio_file, sizeof(char) * (strlen(ptr[i]) + 2));
-					strcpy(audio_file, ptr[i]);
-				}else{
-
-					ok = 0;
-					write(1, ERR_NOAUDIO, strlen(ERR_NOAUDIO));
-					write(1, ERR_FILETERMINATION, strlen(ERR_FILETERMINATION));
-					write(1, AUDIO_FILE, strlen(AUDIO_FILE));
-				}//else
+				ok = 0;
+				write(1, ERR_NOAUDIO, strlen(ERR_NOAUDIO));
+				write(1, ERR_FILETERMINATION, strlen(ERR_FILETERMINATION));
+				write(1, AUDIO_FILE, strlen(AUDIO_FILE));
 			}//else
-		}else{
-			write(1, ERR_UNKNOWNCMD, strlen(ERR_UNKNOWNCMD));
-			ok = 0;
 		}//else
 	}//else
 

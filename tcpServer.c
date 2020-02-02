@@ -168,6 +168,7 @@ void *userAsServer(void *arg){
 
   pthread_t t_dedicatedServer;
   sem_init(&mutexExclusioUserConnect, 0, 1);
+  int ret_w;
   Info * info_server = (Info *) arg;
   connectionInfo ci;
   connectionInfo DS_ci;
@@ -213,25 +214,33 @@ void *userAsServer(void *arg){
       //Posar semafor
       //sem_wait(&mutexExclusioUserConnect);
       //ts->clients.sockets[ts->clients.num_sockets].socket = newsock;
-      ci.socket = newsock;
-      printf("ci.socket == %d\n", ci.socket);
-      printf("pre access list\n");
-      LLISTABID_vesFinal(&(info_server->connections));
-      LLISTABID_inserir(&(info_server->connections), ci);
-      ci_test = LLISTABID_consulta(info_server->connections);//KILL ME
+      ret_w = write(newsock, H_CONOK, strlen(H_CONOK));
+      printf("ret_w == %d\n", ret_w);
 
-      printf("File descriptor socket: %d\n", ci_test.socket);//KILL ME
-      //ts->clients.num_sockets++;
-      //ts->clients.sockets = (configurationData*)realloc(ts->clients.sockets, sizeof(int) * (ts->clients.num_sockets + 1));
-      //ts->clients.sockets[ts->clients.num_sockets - 1].userName = ts->cd.userName;
-      //ts->clients.sockets[ts->clients.num_sockets - 1].audioDirectory = ts->cd.audioDirectory;
+      if (ret_w >= 0) {
+        ci.socket = newsock;
+        printf("ci.socket == %d\n", ci.socket);
+        printf("pre access list\n");
+        LLISTABID_vesFinal(&(info_server->connections));
+        LLISTABID_inserir(&(info_server->connections), ci);
+        ci_test = LLISTABID_consulta(info_server->connections);//KILL ME
 
-      sendConfirmationReply(newsock, info_server->cd);
-      LLISTABID_vesFinal(&(info_server->connections));
-      DS_ci = LLISTABID_consulta(info_server->connections);
-      pthread_create(&t_dedicatedServer, NULL, dedicatedServer, &DS_ci); //Creacio del thread del nou client, cal passar ts al thread
-      //Fins aqui
-      //sem_post(&mutexExclusioUserConnect); //Falta destruir el semafor quan es fa exit o Ctrl-C
+        printf("File descriptor socket: %d\n", ci_test.socket);//KILL ME
+        //ts->clients.num_sockets++;
+        //ts->clients.sockets = (configurationData*)realloc(ts->clients.sockets, sizeof(int) * (ts->clients.num_sockets + 1));
+        //ts->clients.sockets[ts->clients.num_sockets - 1].userName = ts->cd.userName;
+        //ts->clients.sockets[ts->clients.num_sockets - 1].audioDirectory = ts->cd.audioDirectory;
+
+        sendConfirmationReply(newsock, info_server->cd);
+        LLISTABID_vesFinal(&(info_server->connections));
+        DS_ci = LLISTABID_consulta(info_server->connections);
+        pthread_create(&t_dedicatedServer, NULL, dedicatedServer, &DS_ci); //Creacio del thread del nou client, cal passar ts al thread
+        //Fins aqui
+        //sem_post(&mutexExclusioUserConnect); //Falta destruir el semafor quan es fa exit o Ctrl-C
+      }//if
+      else{
+        printf("show connections detected\n");
+      }
     } //else
   }//While(1)
 
