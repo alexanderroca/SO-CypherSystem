@@ -36,6 +36,7 @@
 #define ERR_2FEWARGS "Error, too few arguments or wrong argument order provided to execute command.\n"
 #define ERR_2MANYARGS "Error, too many arguments or wrong argument order provided to execute command.\n"
 #define ERR_PORT "Error, invalid port value.\n"
+#define ERR_PORT_UNAVAILABLE "Error, unavailable port value\n"
 #define ERR_MESSAGE "Error, no message found (specified by using \" \")\n"
 #define ERR_ORDER "Error, wrong argment order.\n"
 #define ERR_NOAUDIO "Error, no audio file extension found in audio file parameter. Audio file must not contain spaces!\n"

@@ -63,7 +63,6 @@ void showConnections(uint16_t port){
 void connectToPort(uint16_t portToConnect, char* ipToConnect, Info * info_client) {
 
   connectionInfo ci;
-
   /*
   ci.userName = (char*)malloc(sizeof(char) + 1);
   ci.audioDirectory = (char*)malloc(sizeof(char) + 1);
@@ -74,58 +73,55 @@ void connectToPort(uint16_t portToConnect, char* ipToConnect, Info * info_client
 
   //Comprovem la validesa del port
   if(portToConnect < atoi(MIN_PORT) && portToConnect > atoi(MAX_PORT)){
-    fprintf(stderr, "Error: %d es un port invalid\n", portToConnect);
-    exit(EXIT_FAILURE);
+    write(1, ERR_PORT_UNAVAILABLE, strlen(ERR_PORT_UNAVAILABLE));
   } //if
+  else{
+    //Comprovem la validesa de l'adresa IP
+    //i la convertim a format binari
+    struct in_addr ip_addr;
 
-  //Comprovem la validesa de l'adresa IP
-  //i la convertim a format binari
-  struct in_addr ip_addr;
+    if(inet_aton(ipToConnect, &ip_addr) == 0){
+        write(1, ERR_PORT_UNAVAILABLE, strlen(ERR_PORT_UNAVAILABLE));
+    } //if
+    else{
+      //Creem el socket
+      int sockfd;
+      sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
-  if(inet_aton(ipToConnect, &ip_addr) == 0){
-    fprintf(stderr, "inet_Aton (%s): %s\n", ipToConnect, strerror(errno));
-    exit(EXIT_FAILURE);
-  } //if
+      if(sockfd < 0){
+        write(1, ERR_PORT_UNAVAILABLE, strlen(ERR_PORT_UNAVAILABLE));
+      } //if
+      else{
+        //Especifiquem l'adresa del servidor
+        struct sockaddr_in s_addr;
+        memset(&s_addr, 0, sizeof(s_addr));
+        s_addr.sin_family = AF_INET;
+        s_addr.sin_port = htons(portToConnect);
+        s_addr.sin_addr = ip_addr;
 
-  //Creem el socket
-  int sockfd;
-  sockfd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+        //I ara ja ens podem connectar
+        //al cridar connect, hem de fer un cast:
+        //bind espera struct sockaddr *
+        //i nosaltres passem struct sockaddr_in *
+        if(connect(sockfd, (void *) &s_addr, sizeof(s_addr)) < 0){
+          close(sockfd);
+          write(1, ERR_PORT_UNAVAILABLE, strlen(ERR_PORT_UNAVAILABLE));
+        } //if
+        else{
+          //cl->num_connected++;
 
-  if(sockfd < 0){
-    perror("socket TCP");
-    exit(EXIT_FAILURE);
-  } //if
+          write(1, "Connecting...\n", strlen("Connecting...\n"));
+          LLISTABID_vesFinal(&(info_client->connections));
+          receiveCD(sockfd, &ci);
+          LLISTABID_inserir(&(info_client->connections), ci);
 
-  //Especifiquem l'adresa del servidor
-  struct sockaddr_in s_addr;
-  memset(&s_addr, 0, sizeof(s_addr));
-  s_addr.sin_family = AF_INET;
-  s_addr.sin_port = htons(portToConnect);
-  s_addr.sin_addr = ip_addr;
-
-  //I ara ja ens podem connectar
-  //al cridar connect, hem de fer un cast:
-  //bind espera struct sockaddr *
-  //i nosaltres passem struct sockaddr_in *
-  if(connect(sockfd, (void *) &s_addr, sizeof(s_addr)) < 0){
-    char buff[128];
-    perror("conenct");
-    int bytes = sprintf(buff, "errno says: %s\n", strerror(errno)); // molt útil
-    write(1, buff, bytes);
-    close(sockfd);
-    exit(EXIT_FAILURE);
-  } //if
-
-  //cl->num_connected++;
-
-  write(1, "Connecting...\n", strlen("Connecting...\n"));
-  LLISTABID_vesFinal(&(info_client->connections));
-  receiveCD(sockfd, &ci);
-  LLISTABID_inserir(&(info_client->connections), ci);
-
-  free(ci.userName);
-  free(ci.audioDirectory);
-  free(ci.ip);
+          free(ci.userName);
+          free(ci.audioDirectory);
+          free(ci.ip);
+        } //else
+      } //else
+    } //else
+  } //else
   //printf("socket == %d\n", ci.socket);
   //printf("user connected %s\n", ci.userName);//KILL ME
   //printf("audio audioDirectory %s\n", ci.audioDirectory);//KILL ME
