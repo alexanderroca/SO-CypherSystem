@@ -70,4 +70,5 @@ int checkCMDExit(int c);
 void setupCI(configurationData cd, connectionInfo * ci);
 void initString(char * string, int size);
 char * get_message(int fd, char delimiter);
+int alreadyConnected(Info * info_client, char * port);
 #endif

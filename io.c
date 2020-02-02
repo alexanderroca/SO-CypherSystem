@@ -842,12 +842,34 @@ void checkCMDConnect(char **ptr, int c, Info * info_client) {
 		if (atoi(ptr[1]) != 0) {
 			sprintf(buffer, "connecting to %d\n", atoi(ptr[1]));//KILL ME
 			write(1, buffer, strlen(buffer));//KILL ME
-			connectToPort(atoi(ptr[1]), "127.0.0.1", info_client);	//BLASCO -> TRACTA STRING EL PORT QUE ESCRIU CLIENT
+			if(alreadyConnected(info_client, ptr[1]))
+				connectToPort(atoi(ptr[1]), "127.0.0.1", info_client);	//BLASCO -> TRACTA STRING EL PORT QUE ESCRIU CLIENT
+			else
+				write(1, ALREADY_CONNECTED, strlen(ALREADY_CONNECTED));
 		}else{
 			write(1, ERR_PORT, strlen(ERR_PORT));
 		}//else
 	}//else
 }//func
+
+int alreadyConnected(Info * info_client, char * port){
+
+	int status = 1;
+	connectionInfo ci;
+
+	 LLISTABID_inici(info_client->connections);
+	 while(!LLISTABID_fi(info_client->connections)){
+
+		  ci = LLISTABID_consulta(info_client->connections);
+			if(ci.port == atoi(port)){
+				status = 0;
+				break;
+			}
+		 LLISTABID_avanca(&info_client->connections);
+	 }	//while
+
+	 return status;
+}
 
 /******************************************************************************
 * <Description>

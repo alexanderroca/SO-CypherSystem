@@ -59,6 +59,7 @@
 #define MD5SUM_COMMAND "md5sum %s"
 #define AUDIO_LIST_TITLE "\n------Audios Found------\n"
 #define AUDIO_NO_LIST_TITLE "\n------Audios Not Found------\n"
+#define ALREADY_CONNECTED "Already connected to this port\n"
 
 #define MT_CONNECTION 0x01
 
