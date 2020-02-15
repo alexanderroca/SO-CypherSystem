@@ -29,6 +29,12 @@ int getAudioFile(char* fileName, char* directoryUserConnected, int socket, char*
 //general function to send messages via sockets
 int sendSocketMSG(int sockfd, char * data, int type);
 
+int sendServerCheck(int sockfd, int type, char * data, int length, int ok);
+
+void receiveServerCheck(int sockfd, char * data);
+
+void sendEOF(int sockfd, char * md5);
+
 //function to recieve data from sockets
 int receiveSocketMSG(int sockfd, int * type, char ** data);
 

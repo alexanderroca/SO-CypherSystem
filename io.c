@@ -267,12 +267,13 @@ int readAudioFile(char* path, int socket){
 
 	if(fd < 0){
 		//send KO
-		write(socket, H_FILEKO, strlen(H_FILEKO));
+		//write(socket, H_FILEKO, strlen(H_FILEKO));
+		sendServerCheck(socket, 5, " ", 0, 0);
 		status = 1;
 	}	//if
 	else{
 		//send OK
-		write(socket, H_FILEOK, strlen(H_FILEOK));
+		//write(socket, H_FILEOK, strlen(H_FILEOK));
 
 		int i, trunk_st_size;
 		int num_bytes;
@@ -286,7 +287,8 @@ int readAudioFile(char* path, int socket){
 		while(i < (trunk_st_size * 255)){
 			bzero(buff, 255);
 			num_bytes = read(fd, buff, 255);
-			write(socket, buff, num_bytes);
+			//write(socket, buff, num_bytes);
+			sendServerCheck(socket, 5, buff, num_bytes, 1);
 			printf("num_bytes: %d - i: %d - trunk_size: %d\n", num_bytes, i, trunk_st_size * 255);
 			i += 255;
 		}	//while
@@ -296,19 +298,24 @@ int readAudioFile(char* path, int socket){
 			i = st.st_size - (trunk_st_size * 255);
 			printf("I = %d\n", i);
 			num_bytes = read(fd, buff, i);
-			write(socket, buff, i);
+			//write(socket, buff, i);
+			sendServerCheck(socket, 5, buff, i, 1);
 		}	//if
 
-		write(socket, H_EOF, strlen(H_EOF));
+		//write(socket, H_EOF, strlen(H_EOF));
 		printf("EXIT\n");//KILL ME
 
 		md5sum_file = executeMD5sum(path);
 		printf("md5sum_file: %s\n", md5sum_file);//KILL ME
 
-		if(md5sum_file != NULL)
-			write(socket, md5sum_file, 32);
-		else
+		if(md5sum_file != NULL){
+			//write(socket, md5sum_file, 32);
+			sendEOF(socket, md5sum_file);
+		}
+		else{
 			write(1, MD5SUM_FAILED, strlen(MD5SUM_FAILED));
+		}
+
 	}	//else
 
 	close(fd);
@@ -318,10 +325,12 @@ int readAudioFile(char* path, int socket){
 int getAudioFile(char* fileName, char* directoryUserConnected, int socket, char* usernameConnected){
 
 	int status = 0;
-	char buffer[255];
-	int num_bytes;
+	int type = 5;
+	char * buffer;
+	int num_bytes = 0;
 	char* md5sum_file;
 	char* path;
+	char* response;
 
 	path = (char*)malloc(sizeof(char) * (strlen(directoryUserConnected) + strlen(fileName) + 2));
 	sprintf(path, "%s/%s", directoryUserConnected, fileName);
@@ -329,9 +338,10 @@ int getAudioFile(char* fileName, char* directoryUserConnected, int socket, char*
 	//path = strcat(path, fileName);
 
 	//Check if file exists
-	char* response = get_message(socket, ']');
+	//char* response = get_message(socket, ']');
+	num_bytes = receiveSocketMSG(socket, &type, &response);
 
-	if(strcmp(H_FILEKO, response) == 0)
+	if(strcmp(H_AUDIOKO, response) == 0)
 			status = 1;
 	else{
 		int fd = open(path, O_CREAT|O_WRONLY,0644);
@@ -342,20 +352,24 @@ int getAudioFile(char* fileName, char* directoryUserConnected, int socket, char*
 		}	//if
 		else{
 
+			//escrivim primer batch de bytes
+			write(fd, buffer, num_bytes);
 			printf("pre while 1\n");
+
 			while(1){
 				bzero(buffer, 255);
-				num_bytes = read(socket, buffer, 255);
+				//num_bytes = read(socket, buffer, 255);
+				num_bytes = receiveSocketMSG(socket, &type, &buffer);
 				printf("num_bytes == %d buffer == %s\n", num_bytes, buffer);
-				if(strcmp(buffer, H_EOF) == 0){
+				if(num_bytes == 0){ //if(strcmp(buffer, H_EOF) == 0)
 						printf("EOF? -> %s\n", buffer);
 						break;
 				}
 				write(fd, buffer, num_bytes);
 			}	//while
 
-			bzero(buffer, 255);
-			read(socket, buffer, 255);
+			//bzero(buffer, 255);
+			//read(socket, buffer, 255);
 
 			printf("Path: %s\n", path);//KILL ME
 
@@ -377,8 +391,22 @@ int getAudioFile(char* fileName, char* directoryUserConnected, int socket, char*
 	}	//else
 
 	free(path);
+	free(response);
 
 	return status;
+}//func
+
+void sendEOF(int sockfd, char * md5){
+	char * message;
+	int length;
+
+	length = strlen(md5);
+
+	message = (char*)malloc(sizeof(char) * (length + strlen(H_EOF) + 10));
+	sprintf(message, "%X %s %d ", MT_DOWNAUDIO, H_EOF, length);
+
+	write(sockfd, message, strlen(message));
+	write(sockfd, md5, length);
 }//func
 
 int sendSocketMSG(int sockfd, char * data, int type){
@@ -482,23 +510,59 @@ int receiveSocketMSG(int sockfd, int * type, char ** data){
 	*data = malloc(sizeof(char));
 
 	length = 0;
-	buffer = readUntil(sockfd, '\n');
-	printf("message received-%s\n", buffer);
-	ptr = (char**)malloc(sizeof(char*));
 
-	for (c = 0, aux = strtok (buffer, " ");
-					aux != NULL; aux = strtok (NULL, " "), c++){
+	if ((*type) == 5) {
+		type_int = 5;
 
-		ptr = realloc (ptr, sizeof (char *) * (c + 2));
-		ptr[c] = aux;
-	}
+		//Allocate memory for data types
+		ptr = (char**)malloc(sizeof(char*) * 4);
 
-	length = atoi(ptr[2]);
-	num_camps = c;
-	type_int = atoi(ptr[0]);
-	*type = type_int;
+		//Allocate msg type to ptr[0]
+		ptr[0] = (char*)malloc(sizeof(char));
+		ptr[0] = "5";
 
-	printf("length == %d\n", length);//KILL ME
+		buffer = readUntil(sockfd, ' ');//read MSG type
+
+		//Allocate msg Headder to ptr[1]
+		buffer = readUntil(sockfd, ' ');//read Headder
+		ptr[1] = (char*)malloc(sizeof(char) * strlen(buffer));
+		strcpy(ptr[1], buffer);
+		printf("ptr[1] == %s\n", ptr[1]);//KILL ME
+
+		//Allocate length to ptr[2]
+		buffer = readUntil(sockfd, ' ');//read length
+		ptr[2] = (char*)malloc(sizeof(char) * strlen(buffer));
+		strcpy(ptr[2], buffer);
+		printf("ptr[2] == %s\n", ptr[2]);//KILL ME
+
+		length = atoi(ptr[2]);
+
+		//Allocate data to ptr[3]
+		ptr[3] = (char*)malloc(sizeof(char) * length);
+		read(sockfd, ptr[3], length);
+		printf("ptr[3] == %s\n", ptr[3]);//KILL ME
+
+
+	}else{
+		buffer = readUntil(sockfd, '\n');
+		printf("message received-%s\n", buffer);//KILL ME
+		ptr = (char**)malloc(sizeof(char*));
+
+		for (c = 0, aux = strtok (buffer, " ");
+						aux != NULL; aux = strtok (NULL, " "), c++){
+
+			ptr = realloc (ptr, sizeof (char *) * (c + 2));
+			ptr[c] = aux;
+		}
+
+		num_camps = c;
+		type_int = atoi(ptr[0]);
+		*type = type_int;
+		length = atoi(ptr[2]);
+		printf("length == %d\n", length);//KILL ME
+
+	}//else
+
 	switch (type_int) {
 
 		case 0://RECEIVE CD
@@ -551,26 +615,37 @@ int receiveSocketMSG(int sockfd, int * type, char ** data){
 		case 5:
 		//DOWNLOAD AUDIOS
 			printf("in receeive audio download\n");//KILL ME
-			if (strcmp(ptr[1], H_AUDIOREQ) == 0) {
-				*data = realloc(*data, sizeof(char) * strlen(ptr[3]));
-				strcpy(*data, ptr[3]);
+			if (strcmp(ptr[1], H_AUDIOKO) == 0) {
+				printf("audioko\n");//KILL ME
+				*data = realloc(*data, sizeof(char) * strlen(H_AUDIOKO));
+				strcpy(*data, H_AUDIOKO);
 
 			}else{
-				if (strcmp(ptr[1], H_AUDIORES) == 0) {
-					length = atoi(ptr[2]);
-					*data = realloc(*data, sizeof(char) * length);
+				if (strcmp(ptr[1], H_AUDIOREQ) == 0) {
+					printf("audioreq\n");//KILL ME
+					*data = realloc(*data, sizeof(char) * strlen(ptr[3]));
 					strcpy(*data, ptr[3]);
 
 				}else{
-					if (strcmp(ptr[1], H_EOF) == 0) {
-						*data = realloc(*data, sizeof(char) * 32);
+					if (strcmp(ptr[1], H_AUDIORES) == 0) {
+						printf("audiores\n");//KILL ME
+						length = atoi(ptr[2]);
+						*data = realloc(*data, sizeof(char) * length);
 						strcpy(*data, ptr[3]);
+
 					}else{
-						//cas que no existeixi el audio file demanat
-						write(1, ERR_UNKNOWNFILE, strlen(ERR_UNKNOWNFILE));
-					}//else
-				}//else
-			}//else
+						if (strcmp(ptr[1], H_EOF) == 0) {
+							printf("audioEOF\n");//KILL ME
+							length = 0;
+							*data = realloc(*data, sizeof(char) * 32);
+							strcpy(*data, ptr[3]);
+						}else{
+							//cas que no existeixi el audio file demanat
+							write(1, ERR_UNKNOWNFILE, strlen(ERR_UNKNOWNFILE));
+						}//else EOF
+					}//else AUDIO_RES
+				}//else AUDIO_REQ
+			}//else AUDIO_KO
 
 			break;
 		case 6:
@@ -588,25 +663,24 @@ int receiveSocketMSG(int sockfd, int * type, char ** data){
 	}
 	free(ptr);
 
-	return 1;
+	return length;
 }//func
 
-/*
-int sendServerCheck(int sockfd, int type, char * data, int ok){
+int sendServerCheck(int sockfd, int type, char * data, int length, int ok){
 	char * message;
-	int length;
+	char c_length[5];
 
-	length = strlen(data);
+	itoa(length, c_length);
 
 	switch (type) {
 		case 1:
 			if (ok) {
-				message = (char*)malloc(sizeof(char) * (strlen(H_CONOK) + length + 5));
-				sprintf(message, PROTOCOL_MESSAGE, MT_CONNECTION, H_CONOK, length, data);
+				message = (char*)malloc(sizeof(char) * (strlen(H_CONOK) + length + 10));
+				sprintf(message, PROTOCOL_MESSAGE, MT_CONNECTION, H_CONOK, c_length, data);
 
 			}else{
-				message = (char*)malloc(sizeof(char) * (strlen(H_CONKO) + length + 5));
-				sprintf(message, PROTOCOL_MESSAGE, MT_CONNECTION, H_CONKO, length, data);
+				message = (char*)malloc(sizeof(char) * (strlen(H_CONKO) + length + 10));
+				sprintf(message, PROTOCOL_MESSAGE, MT_CONNECTION, H_CONKO, c_length, data);
 
 			}
 
@@ -616,28 +690,40 @@ int sendServerCheck(int sockfd, int type, char * data, int ok){
 		break;
 		case 2://Only possible response MSGOK?
 		case 3://Same reply for say & broadcast
-			message = (char*)malloc(sizeof(char) * (strlen(H_MSGOK) + 5));
-			sprintf(message, PROTOCOL_MESSAGE, MT_SAY, H_MSGOK, 0, NULL);
+			message = (char*)malloc(sizeof(char) * (strlen(H_MSGOK) + 10));
+			sprintf(message, PROTOCOL_MESSAGE, MT_SAY, H_MSGOK, "0", " ");
 
 			write(sockfd, message, strlen(message));
 			free(message);
+		break;
 
-		case 5://only MD5SUM reply
-			message = (char*)malloc(sizeof(char) * (strlen(H_AUDIOKO) + 5));
-			sprintf(message, PROTOCOL_MESSAGE, MT_DOWNAUDIO, H_AUDIOKO, 0, NULL);
+		case 5:
+			if (ok) {
+				message = (char*)malloc(sizeof(char) * (strlen(H_AUDIORES) + 10));
+				sprintf(message, "%X %s %d ", type, H_AUDIORES, length);
 
-			write(sockfd, message, strlen(message));
+				write(sockfd, message, strlen(message));
+				write(sockfd, data, length);
+
+			}else{
+				message = (char*)malloc(sizeof(char) * (strlen(H_AUDIOKO) + 10));
+				sprintf(message, PROTOCOL_MESSAGE, MT_DOWNAUDIO, H_AUDIOKO, "0", " ");
+
+				write(sockfd, message, strlen(message));
+
+			}//else
+
 			free(message);
 
 		break;
 		case 6:
 			if (ok) {
-				message = (char*)malloc(sizeof(char) * (strlen(H_CONOK) + 5));
-				sprintf(message, PROTOCOL_MESSAGE, MT_EXIT, H_CONOK, 0, NULL);
+				message = (char*)malloc(sizeof(char) * (strlen(H_CONOK) + 6));
+				sprintf(message, PROTOCOL_MESSAGE, MT_EXIT, H_CONOK, "0", " ");
 
 			}else{
-				message = (char*)malloc(sizeof(char) * (strlen(H_CONKO) + 5));
-				sprintf(message, PROTOCOL_MESSAGE, MT_EXIT, H_CONKO, 0, NULL);
+				message = (char*)malloc(sizeof(char) * (strlen(H_CONKO) + 6));
+				sprintf(message, PROTOCOL_MESSAGE, MT_EXIT, H_CONKO, "0", " ");
 			}
 
 			write(sockfd, message, strlen(message));
@@ -652,7 +738,7 @@ int sendServerCheck(int sockfd, int type, char * data, int ok){
 	}//switch
 	return 1;
 
-}
+}//func
 
 void receiveServerCheck(int sockfd, char * data){
 	char * buffer, * aux;
@@ -700,6 +786,7 @@ void receiveServerCheck(int sockfd, char * data){
 	}//switch
 }//func
 
+/*
 void sendMD5Check(int sockfd, int ok){
 	char * message;
 
@@ -1160,7 +1247,6 @@ void checkCMDShow(char **ptr, int c, Info * info_client){
 
 	char *user;
 	int i;
-	char buffer_aux[100] = " ";//KILL ME
 
 	user = (char*)malloc(sizeof(char));
 	if (c < 2) {
@@ -1211,7 +1297,7 @@ void checkCMDShow(char **ptr, int c, Info * info_client){
 
 int checkUserConnnected(char* userName, LlistaBid list){
 	connectionInfo ci;
-	int i, socket;
+	int socket;
 	int found = 0;
 
 	if (LLISTABID_esBuida(list)) {

@@ -115,6 +115,7 @@ void *dedicatedServer(void *arg){
     receiveSocketMSG(ci->socket, &msg_type, &(message));
     printf("post msg received message == %s\n", message);//KILL ME
     connected = DSMsgHandler(message, msg_type, client_name, ci);
+    msg_type = 0;
     free(message);
   }
 
