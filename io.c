@@ -6,6 +6,14 @@ void fixStrings(configurationData * cd){
 	cd->ip[strlen(cd->ip) - 1] = '\0';
 }//func
 
+void charTransfer(char * result, char * origin, int length){
+	int i = 0;
+
+	for (i = 0; i < length; i++) {
+		result[i] = origin[i];
+	}
+}
+
 /******************************************************************************
 * <Description>
 * itoa (integer to ASCII) gets the vale of an integer and converts it to a
@@ -278,6 +286,7 @@ int readAudioFile(char* path, int socket){
 		int i, trunk_st_size;
 		int num_bytes;
 
+		printf("path == %s\n", path);
 		stat(path, &st);
 
 		trunk_st_size = (int) st.st_size / 255;
@@ -289,7 +298,8 @@ int readAudioFile(char* path, int socket){
 			num_bytes = read(fd, buff, 255);
 			//write(socket, buff, num_bytes);
 			sendServerCheck(socket, 5, buff, num_bytes, 1);
-			printf("num_bytes: %d - i: %d - trunk_size: %d\n", num_bytes, i, trunk_st_size * 255);
+			usleep(1000);
+			//printf("num_bytes: %d - i: %d - trunk_size: %d\n", num_bytes, i, trunk_st_size * 255);
 			i += 255;
 		}	//while
 
@@ -326,7 +336,6 @@ int getAudioFile(char* fileName, char* directoryUserConnected, int socket, char*
 
 	int status = 0;
 	int type = 5;
-	char * buffer;
 	int num_bytes = 0;
 	char* md5sum_file;
 	char* path;
@@ -334,11 +343,13 @@ int getAudioFile(char* fileName, char* directoryUserConnected, int socket, char*
 
 	path = (char*)malloc(sizeof(char) * (strlen(directoryUserConnected) + strlen(fileName) + 2));
 	sprintf(path, "%s/%s", directoryUserConnected, fileName);
+	printf("path == %s\n", path);
 	//path = strcat(directoryUserConnected, "/");
 	//path = strcat(path, fileName);
 
 	//Check if file exists
 	//char* response = get_message(socket, ']');
+
 	num_bytes = receiveSocketMSG(socket, &type, &response);
 
 	if(strcmp(H_AUDIOKO, response) == 0)
@@ -352,20 +363,21 @@ int getAudioFile(char* fileName, char* directoryUserConnected, int socket, char*
 		}	//if
 		else{
 
+			printf("file opened correctly\n");
 			//escrivim primer batch de bytes
-			write(fd, buffer, num_bytes);
-			printf("pre while 1\n");
+			write(fd, response, num_bytes);
+			printf("Saving File...\n");
 
 			while(1){
-				bzero(buffer, 255);
+				bzero(response, 255);
 				//num_bytes = read(socket, buffer, 255);
-				num_bytes = receiveSocketMSG(socket, &type, &buffer);
-				printf("num_bytes == %d buffer == %s\n", num_bytes, buffer);
+				num_bytes = receiveSocketMSG(socket, &type, &response);
+				//printf("num_bytes == %d response == %s\n", num_bytes, response);
 				if(num_bytes == 0){ //if(strcmp(buffer, H_EOF) == 0)
-						printf("EOF? -> %s\n", buffer);
+						printf("EOF? -> %s\n", response);
 						break;
 				}
-				write(fd, buffer, num_bytes);
+				write(fd, response, num_bytes);
 			}	//while
 
 			//bzero(buffer, 255);
@@ -375,12 +387,12 @@ int getAudioFile(char* fileName, char* directoryUserConnected, int socket, char*
 
 			md5sum_file = executeMD5sum(path);
 
-			printf("Buffer: %s\n", buffer);//KILL ME
+			printf("response: %s\n", response);//KILL ME
 			printf("md5sum_file: %s\n", md5sum_file);//KILL ME
 
-			if(strcmp(buffer, md5sum_file) == 0){
-				sprintf(buffer, FILE_TRANSFER_OK, usernameConnected, fileName);
-				write(1, buffer, strlen(buffer));
+			if(strcmp(response, md5sum_file) == 0){
+				sprintf(response, FILE_TRANSFER_OK, usernameConnected, fileName);
+				write(1, response, strlen(response));
 			}	//if
 			else
 				write(1, FILE_TRANSFER_KO, strlen(FILE_TRANSFER_KO));
@@ -512,6 +524,7 @@ int receiveSocketMSG(int sockfd, int * type, char ** data){
 	length = 0;
 
 	if ((*type) == 5) {
+		num_camps = 4;
 		type_int = 5;
 
 		//Allocate memory for data types
@@ -527,21 +540,17 @@ int receiveSocketMSG(int sockfd, int * type, char ** data){
 		buffer = readUntil(sockfd, ' ');//read Headder
 		ptr[1] = (char*)malloc(sizeof(char) * strlen(buffer));
 		strcpy(ptr[1], buffer);
-		printf("ptr[1] == %s\n", ptr[1]);//KILL ME
 
 		//Allocate length to ptr[2]
 		buffer = readUntil(sockfd, ' ');//read length
 		ptr[2] = (char*)malloc(sizeof(char) * strlen(buffer));
 		strcpy(ptr[2], buffer);
-		printf("ptr[2] == %s\n", ptr[2]);//KILL ME
 
 		length = atoi(ptr[2]);
 
 		//Allocate data to ptr[3]
 		ptr[3] = (char*)malloc(sizeof(char) * length);
 		read(sockfd, ptr[3], length);
-		printf("ptr[3] == %s\n", ptr[3]);//KILL ME
-
 
 	}else{
 		buffer = readUntil(sockfd, '\n');
@@ -617,27 +626,27 @@ int receiveSocketMSG(int sockfd, int * type, char ** data){
 			printf("in receeive audio download\n");//KILL ME
 			if (strcmp(ptr[1], H_AUDIOKO) == 0) {
 				printf("audioko\n");//KILL ME
-				*data = realloc(*data, sizeof(char) * strlen(H_AUDIOKO));
+				*data = realloc(*data, sizeof(char) * (strlen(H_AUDIOKO) + 2));
 				strcpy(*data, H_AUDIOKO);
 
 			}else{
 				if (strcmp(ptr[1], H_AUDIOREQ) == 0) {
 					printf("audioreq\n");//KILL ME
-					*data = realloc(*data, sizeof(char) * strlen(ptr[3]));
+					*data = realloc(*data, sizeof(char) * (strlen(ptr[3]) + 2));
 					strcpy(*data, ptr[3]);
 
 				}else{
 					if (strcmp(ptr[1], H_AUDIORES) == 0) {
 						printf("audiores\n");//KILL ME
-						length = atoi(ptr[2]);
-						*data = realloc(*data, sizeof(char) * length);
-						strcpy(*data, ptr[3]);
+						*data = realloc(*data, sizeof(char) * (length + 5));
+
+						charTransfer(*data, ptr[3], length);
 
 					}else{
 						if (strcmp(ptr[1], H_EOF) == 0) {
 							printf("audioEOF\n");//KILL ME
 							length = 0;
-							*data = realloc(*data, sizeof(char) * 32);
+							*data = realloc(*data, sizeof(char) * 36);
 							strcpy(*data, ptr[3]);
 						}else{
 							//cas que no existeixi el audio file demanat

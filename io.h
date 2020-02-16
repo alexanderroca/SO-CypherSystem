@@ -8,6 +8,8 @@
 //
 void fixStrings(configurationData * cd);
 //
+void charTransfer(char * result, char * origin, int length);
+//
 void itoa(int n, char* s);
 //
 void reverse(char* s);
