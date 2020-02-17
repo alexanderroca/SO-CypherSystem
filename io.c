@@ -521,6 +521,8 @@ int receiveSocketMSG(int sockfd, int * type, char ** data){
 	char **ptr; //ptr[0] = Type ptr[1] = header ptr[2] = length
 	*data = malloc(sizeof(char));
 
+	printf("sockfd = %d - type = %d\n", sockfd, *type);
+
 	length = 0;
 
 	if ((*type) == 5) {
@@ -595,6 +597,7 @@ int receiveSocketMSG(int sockfd, int * type, char ** data){
 			break;
 		case 4:
 		//SHOW AUDIOS
+		printf("Inside show audios recieve MSG\n");
 			if (strcmp(ptr[1], H_SHOWAUDIO) == 0) {
 
 				printf("in RCV show audio\n");//KILL ME
@@ -1399,14 +1402,17 @@ void readDirectoryUserConnected(int socket){
 
   char* buffer;
 	char* aux;
-  char** files = malloc(sizeof(char*));
-	int type;
+  char** files;
+	int type = 4;
 	int c;
-
 
 	sendSocketMSG(socket, NULL, 4);
 
+	files = malloc(sizeof(char*));
 	buffer = (char*)malloc(sizeof(char));
+	aux = malloc(sizeof(char));
+
+	printf("Pre recieve socketMSG\n");
 	receiveSocketMSG(socket, &type, &(buffer));
 	printf("buffer audio list == %s\n", buffer);//KILL ME
 
@@ -1426,6 +1432,7 @@ void readDirectoryUserConnected(int socket){
 	}	//else
   free(files);
 	free(buffer);
+	free(aux);
 }//func
 
 void showAudioFiles(char** files, int num_files){

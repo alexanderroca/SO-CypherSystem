@@ -217,7 +217,6 @@ void broadcast(char * data, Info * info_client){
 void showAudios(char* userName, Info * info_client){
   int socket;
   char* buffer;
-
   buffer = malloc(sizeof(char));
   socket = checkUserConnnected(userName, info_client->connections);
   if(socket == -1){
@@ -228,7 +227,7 @@ void showAudios(char* userName, Info * info_client){
   } //if
   else{
     //llegir directori d'audios
-     readDirectoryUserConnected(socket);
+    readDirectoryUserConnected(socket);
   } //else
 
   free(buffer);
