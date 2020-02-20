@@ -35,7 +35,9 @@ int sendServerCheck(int sockfd, int type, char * data, int length, int ok);
 
 void receiveServerCheck(int sockfd, char * data);
 
-void sendEOF(int sockfd, char * md5);
+void sendEOFProtocol(int sockfd);
+
+void executeMD5sum(char* file_name, char* md5sum);
 
 //function to recieve data from sockets
 int receiveSocketMSG(int sockfd, int * type, char ** data);
