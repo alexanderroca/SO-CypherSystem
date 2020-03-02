@@ -253,3 +253,38 @@ void downloadAudios(char * user, char * audio_file, Info * info_client) {
     getAudioFile(audio_file, info_client->cd.audioDirectory, socket, user);
   } //else
 }//func
+
+int exit_server(Info * info_client){
+  char * message;
+  char response[8];
+  connectionInfo ci;
+  int c_length;
+  int status = 0;
+
+  c_length = strlen(info_client->cd.userName);
+  message = malloc(sizeof(char) * (c_length + strlen(info_client->cd.userName) + 7));
+
+  LLISTABID_inici(info_client->connections);
+
+  while(LLISTABID_fi(info_client->connections)){
+
+    ci = LLISTABID_consulta(info_client->connections);
+    sprintf(message, PROTOCOL_MESSAGE, MT_EXIT, H_EXIT, c_length, info_client->cd.userName);
+    write(ci.socket, message, strlen(message));
+    read(ci.socket, response, sizeof(8));
+
+    if(strcmp(response, H_CONOK))
+      LLISTABID_avanca(&info_client->connections);
+    else if(strcmp(response, H_CONKO)){
+      //Mostrar error
+      status = 1;
+    } //else-if
+
+  } //while
+
+  //Semafor_START
+  LLISTABID_destrueix(&info_client->connections);
+  //Semafor_END
+
+  return status;
+}

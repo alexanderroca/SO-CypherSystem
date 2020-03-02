@@ -8,7 +8,6 @@ void fixStrings(configurationData * cd){
 
 void charTransfer(char * result, char * origin, int length){
 	int i = 0;
-
 	for (i = 0; i < length; i++) {
 		result[i] = origin[i];
 	}
@@ -643,6 +642,7 @@ int receiveSocketMSG(int sockfd, int * type, char ** data){
 						printf("audiores\n");//KILL ME
 						*data = realloc(*data, sizeof(char) * (length + 5));
 
+						printf("Pre char transfer\n");
 						charTransfer(*data, ptr[3], length);
 
 					}else{
@@ -662,6 +662,11 @@ int receiveSocketMSG(int sockfd, int * type, char ** data){
 			break;
 		case 6:
 		//EXIT
+			printf("In recieve exit message\n");	//KILL ME
+			if (strcmp(ptr[1], H_EXIT) == 0){
+				printf("exitreq\n");//KILL ME
+				*data = realloc(*data, sizeof(char) * (strlen(MT_EXIT) + strlen(H_CONOK) + 1));
+			}	//if
 			break;
 		default:
 		write(1, "Error Default criteria met in receiveSocketMSG\n",
@@ -892,7 +897,7 @@ int  checkCommand(char * user_input, Info * info_client) {
 				}else{//if download
 					if (strcasecmp(ptr[0], CMD_EXIT) == 0) {
 
-						exit = checkCMDExit(c);
+						exit = checkCMDExit(c, info_client);
 					}else{//if exit
 						if (strcasecmp(ptr[0], CMD_SHOW) == 0) {
 
@@ -1225,14 +1230,14 @@ void checkCMDDownload(char **ptr, int c, Info * info_client) {
 * @return: exit integer used as boolean, returns 1 if command is valid,
 *				 	 if not returns 0
 ******************************************************************************/
-int checkCMDExit(int c){
+int checkCMDExit(int c, Info * info_client){
 	int exit = 0;
 
 	if (c > 1) {
 
 		write(1, ERR_2MANYARGS, strlen(ERR_2MANYARGS));
 	}else{
-
+		exit_server(info_client);
 		exit = 1;
 	}//else
 

@@ -73,7 +73,7 @@ void checkCMDDownload(char **ptr, int c, Info * info_client);
 void checkCMDShow(char **ptr, int c, Info * info_client);
 
 //makes the checks to see if the exit command has been correctly entered
-int checkCMDExit(int c);
+int checkCMDExit(int c, Info * info_client);
 
 void setupCI(configurationData cd, connectionInfo * ci);
 void initString(char * string, int size);
