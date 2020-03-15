@@ -523,6 +523,20 @@ int sendSocketMSG(int sockfd, char * data, int type){
 			write(sockfd, message, strlen(message));
 			free(message);
 			break;
+
+		case 6:
+			//EXIT
+			printf("in sendSocketMSG exit\n");//KILL ME
+			length = strlen(data);
+			itoa(length, c_length);
+			message = (char*)malloc(sizeof(char) * (length + strlen(H_EXIT) + 10));
+
+			sprintf(message, PROTOCOL_MESSAGE, MT_EXIT, H_EXIT, c_length, data);
+			printf("message sent == %s\n", message);//KILL ME
+			write(sockfd, message, strlen(message));
+			free(message);
+			break;
+
 		default:
 			write(1, "Error Default criteria met in sendSocketMSG\n",
 				strlen("Error Default criteria met in sendSocketMSG\n"));
@@ -598,6 +612,7 @@ int receiveSocketMSG(int sockfd, int * type, char ** data){
 		case 0://RECEIVE CD
 		case 2://RECEIVE MSG
 		case 3://RECEIVE BROADCAST
+		case 6://RECEIVE EXIT
 			//separem el missatge sencer en les diferents parts separades per " "
 			*data = realloc(*data, sizeof(char) * (length + 1));
 
@@ -688,9 +703,7 @@ int receiveSocketMSG(int sockfd, int * type, char ** data){
 			}//else AUDIO_KO
 
 			break;
-		case 6:
-		//EXIT
-			break;
+			
 		default:
 		write(1, "Error Default criteria met in receiveSocketMSG\n",
 			strlen("Error Default criteria met in receiveSocketMSG\n"));
@@ -756,7 +769,7 @@ int sendServerCheck(int sockfd, int type, char * data, int length, int ok){
 			free(message);
 
 		break;
-		case 6:
+		case 6://exit
 			if (ok) {
 				message = (char*)malloc(sizeof(char) * (strlen(H_CONOK) + 6));
 				sprintf(message, PROTOCOL_MESSAGE, MT_EXIT, H_CONOK, "0", " ");
@@ -920,7 +933,7 @@ int  checkCommand(char * user_input, Info * info_client) {
 				}else{//if download
 					if (strcasecmp(ptr[0], CMD_EXIT) == 0) {
 
-						exit = checkCMDExit(c);
+						exit = checkCMDExit(c, info_client);
 					}else{//if exit
 						if (strcasecmp(ptr[0], CMD_SHOW) == 0) {
 
@@ -1164,7 +1177,7 @@ void checkCMDBroadcast(char **ptr, int c, Info * info_client) {
 
 	if (ok) {
 
-		broadcast(message, info_client);
+		broadcast(message, info_client, 0);
 	}//if
 
 	free(message);
@@ -1253,14 +1266,14 @@ void checkCMDDownload(char **ptr, int c, Info * info_client) {
 * @return: exit integer used as boolean, returns 1 if command is valid,
 *				 	 if not returns 0
 ******************************************************************************/
-int checkCMDExit(int c){
+int checkCMDExit(int c, Info * info_client){
 	int exit = 0;
 
 	if (c > 1) {
 
 		write(1, ERR_2MANYARGS, strlen(ERR_2MANYARGS));
 	}else{
-
+		broadcast(" ", info_client, 1);
 		exit = 1;
 	}//else
 

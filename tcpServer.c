@@ -121,7 +121,7 @@ void *dedicatedServer(void *arg){
 
   free(show_message);
   free(client_name);
-
+  printf("DS thread closed\n");//KILL ME
   return NULL;
 }
 
