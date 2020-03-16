@@ -188,7 +188,7 @@ void say(char * user, char * data, Info * info_client){
   free(message);
 }//func
 
-void broadcast(char * data, Info * info_client){
+void broadcast(char * data, Info * info_client, int exit){
   char * message;
   connectionInfo ci;
 
@@ -204,8 +204,15 @@ void broadcast(char * data, Info * info_client){
 
     do{
       ci = LLISTABID_consulta(info_client->connections);
-      printf("sending broadcast to socket %d\n", ci.socket);//KILL ME
-      sendSocketMSG(ci.socket, message, 3);
+
+      if (exit) {
+        printf("sending exit to socket %d\n", ci.socket);//KILL ME
+        sendSocketMSG(ci.socket, message, 6);
+      }else{
+        printf("sending broadcast to socket %d\n", ci.socket);//KILL ME
+        sendSocketMSG(ci.socket, message, 3);
+      }
+
       LLISTABID_avanca(&(info_client->connections));
 
     }while (!LLISTABID_fi(info_client->connections));

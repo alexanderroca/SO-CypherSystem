@@ -1,7 +1,7 @@
 #include "tcpServer.h"
 
 sem_t mutexExclusioUserConnect;
-int end;
+int* end;
 
 //Creem dos threads
 int serverClient(configurationData cd){
@@ -9,7 +9,8 @@ int serverClient(configurationData cd){
   pthread_t t_client, t_server;
   int estat = 0;
   Info info_client, info_server;
-  end = 0;
+  int aux = 0;
+  end = &aux;
   //ThreadServer ts;
   //semaphore sem_clientServer;
 
@@ -30,14 +31,16 @@ int serverClient(configurationData cd){
 
   //SEM_init(&sem_clientServer, 1);
 
-  estat = pthread_create(&t_client, NULL, userAsClient, &info_client);
+  estat = pthread_create(&t_server, NULL, userAsServer, &info_server);
+
   if(estat != 0){
     perror("pthread_create");
     return -1;
   }  //if
 
-  estat = pthread_create(&t_server, NULL, userAsServer, &info_server);
+  info_client.id_thread = t_server;
 
+  estat = pthread_create(&t_client, NULL, userAsClient, &info_client);
   if(estat != 0){
     perror("pthread_create");
     return -1;
@@ -66,7 +69,7 @@ void *userAsClient(void *arg){
   buffer = (char*)malloc(sizeof(char) * (strlen(info_client->cd.userName) + 5));
   //SEM_constructor_with_name(&sem_clientServer, ftok("tcpServer.c", atoi("clientServer")));
 
-  while (!end) {
+  while (!(*end)) {
 
     printf("waiting intput\n");
     //SEM_wait(&sem_clientServer);
@@ -76,8 +79,7 @@ void *userAsClient(void *arg){
     user_input = readUntil(0, '\n');
 
     if (strlen(user_input)) {
-      end = checkCommand(user_input, info_client);
-
+      *end = checkCommand(user_input, info_client);
     }else{
 
       write(1, ERR_UNKNOWNCMD, strlen(ERR_UNKNOWNCMD));
@@ -88,9 +90,11 @@ void *userAsClient(void *arg){
 
   }//while
 
+  //pthread_cancel(info_client->id_thread);
+
   free(buffer);
   free(user_input);
-
+  printf("USER CLIENT END\n");
   return NULL;
 }//func
 
@@ -121,7 +125,7 @@ void *dedicatedServer(void *arg){
 
   free(show_message);
   free(client_name);
-
+  printf("DS thread closed\n");//KILL ME
   return NULL;
 }
 
@@ -198,20 +202,16 @@ void *userAsServer(void *arg){
   } //if
 
   listen(sockfd, 5);
+  fcntl(sockfd, F_SETFL, O_NONBLOCK); /* Change the socket into non-blocking state	*/
 
-  while(!end){
+  while(!(*end)){
     struct sockaddr_in c_addr;
     socklen_t c_len = sizeof(c_addr);
 
     //Al cridar accept hem de fer el mateix cast que per bind,
     //i pel mateix motiu
     int newsock = accept(sockfd, (void *) &c_addr, &c_len);
-
-    if(newsock < 0){
-      perror("accept");
-      exit(EXIT_FAILURE);
-    } //if
-    else{
+    if(newsock > 0){
       //Posar semafor
       //sem_wait(&mutexExclusioUserConnect);
       //ts->clients.sockets[ts->clients.num_sockets].socket = newsock;
@@ -239,16 +239,14 @@ void *userAsServer(void *arg){
         //Fins aqui
         //sem_post(&mutexExclusioUserConnect); //Falta destruir el semafor quan es fa exit o Ctrl-C
       }//if
-      else{
-        printf("show connections detected\n");
-      }
-    } //else
+    } //if
   }//While(1)
 
   free(ci.userName);
   free(ci.audioDirectory);
   free(ci.ip);
 
+  printf("USER SERVER END\n");
   return (void *) 0;
 }
 

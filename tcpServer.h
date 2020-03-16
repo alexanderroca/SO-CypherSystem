@@ -8,7 +8,7 @@
 #include <sys/stat.h>
 #include <sys/ipc.h>
 #include <sys/types.h>
-
+#include <fcntl.h> /* Added for the nonblocking socket */
 
 #include "command.h"
 #include "io.h"

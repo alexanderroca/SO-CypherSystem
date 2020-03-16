@@ -168,6 +168,7 @@ typedef struct{
 typedef struct{
 	configurationData cd;
 	LlistaBid connections;
+	pthread_t id_thread;
 }Info;
 
 #endif
