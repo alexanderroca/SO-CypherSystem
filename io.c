@@ -1267,6 +1267,8 @@ void checkCMDDownload(char **ptr, int c, Info * info_client) {
 int checkCMDExit(int c, Info * info_client){
 	int exit = 0;
 
+	printf("in EXIT\n");//KILL ME
+
 	if (c > 1) {
 
 		write(1, ERR_2MANYARGS, strlen(ERR_2MANYARGS));

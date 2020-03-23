@@ -14,7 +14,7 @@
 #include "io.h"
 
 int serverClient(configurationData cd);
-void *userAsClient(void *arg);
+void userAsClient();
 void *userAsServer(void *arg);
 void sendConfirmationReply(int sockfd, configurationData cd);
 

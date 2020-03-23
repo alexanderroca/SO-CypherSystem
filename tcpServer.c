@@ -2,13 +2,32 @@
 
 sem_t mutexExclusioUserConnect;
 int* end;
+char * user_input = NULL;
+char * buffer = NULL;
+
+Info info_client;
+
+void sig_handler() {
+  printf("in sig_handler\n");//KILL ME
+  *end = checkCommand(CMD_EXIT, &info_client);
+
+  if(buffer != NULL){
+    free(buffer);
+  }
+
+  if (user_input != NULL) {
+    free(user_input);
+  }
+
+  exit(0);
+}
 
 //Creem dos threads
 int serverClient(configurationData cd){
 
-  pthread_t t_client, t_server;
+  pthread_t t_server;
   int estat = 0;
-  Info info_client, info_server;
+  Info info_server;
   int aux = 0;
   end = &aux;
   //ThreadServer ts;
@@ -40,6 +59,9 @@ int serverClient(configurationData cd){
 
   info_client.id_thread = t_server;
 
+  //pthread_join(t_server, NULL);
+  userAsClient();
+  /*
   estat = pthread_create(&t_client, NULL, userAsClient, &info_client);
   if(estat != 0){
     perror("pthread_create");
@@ -47,39 +69,36 @@ int serverClient(configurationData cd){
   }  //if
 
   pthread_join(t_client, NULL);
-  pthread_join(t_server, NULL);
-
+  */
   //SEM_destructor(&sem_clientServer);
 
   return 0;
 }
 
 //Usuari com a client
-void *userAsClient(void *arg){
+void userAsClient(){
 
+  printf("in user as client\n");//KILL ME
   //semaphore sem_clientServer;
-  Info * info_client = (Info *) arg;
-  char * user_input;
-  char * buffer;
   //connectedList connected_list;
 
   //connected_list.num_connected = 0;
   //connected_list.info = (connectedInfo*)malloc(sizeof(connectedInfo));
   user_input = (char*)malloc(sizeof(char));
-  buffer = (char*)malloc(sizeof(char) * (strlen(info_client->cd.userName) + 5));
+  buffer = (char*)malloc(sizeof(char) * (strlen(info_client.cd.userName) + 5));
   //SEM_constructor_with_name(&sem_clientServer, ftok("tcpServer.c", atoi("clientServer")));
 
   while (!(*end)) {
 
     printf("waiting intput\n");
     //SEM_wait(&sem_clientServer);
-    sprintf(buffer, "$%s: ", info_client->cd.userName);
+    sprintf(buffer, "$%s: ", info_client.cd.userName);
     write(1, buffer, strlen(buffer));
 
     user_input = readUntil(0, '\n');
 
     if (strlen(user_input)) {
-      *end = checkCommand(user_input, info_client);
+      *end = checkCommand(user_input, &info_client);
     }else{
 
       write(1, ERR_UNKNOWNCMD, strlen(ERR_UNKNOWNCMD));
@@ -92,10 +111,6 @@ void *userAsClient(void *arg){
 
   //pthread_cancel(info_client->id_thread);
 
-  free(buffer);
-  free(user_input);
-  printf("USER CLIENT END\n");
-  return NULL;
 }//func
 
 //Servidor dedicat per client connectat al serverClient

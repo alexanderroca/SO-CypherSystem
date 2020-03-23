@@ -28,6 +28,8 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     } //else
 
+    signal(SIGINT, sig_handler);
+
     serverClient(cd);
 
     return EXIT_SUCCESS;

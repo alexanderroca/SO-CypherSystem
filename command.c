@@ -196,27 +196,40 @@ void broadcast(char * data, Info * info_client, int exit){
   sprintf(message, SEND_MSG, info_client->cd.userName, data);
 
   //semafor
-  if (LLISTABID_esBuida(info_client->connections)) {
-    write(1, ERR_NOUSERS, strlen(ERR_NOUSERS));
-  }else{
-    //enviem el misatge a tots els usuaris conectats
-    LLISTABID_vesInici(&(info_client->connections));
+  if (exit) {
+    if (!LLISTABID_esBuida(info_client->connections)) {
+      //enviem el misatge a tots els usuaris conectats
+      LLISTABID_vesInici(&(info_client->connections));
 
-    do{
-      ci = LLISTABID_consulta(info_client->connections);
+      do{
+        ci = LLISTABID_consulta(info_client->connections);
 
-      if (exit) {
         printf("sending exit to socket %d\n", ci.socket);//KILL ME
         sendSocketMSG(ci.socket, message, 6);
-      }else{
+
+        LLISTABID_avanca(&(info_client->connections));
+
+      }while (!LLISTABID_fi(info_client->connections));      
+    }//if
+  }else{
+
+    if (LLISTABID_esBuida(info_client->connections)) {
+      write(1, ERR_NOUSERS, strlen(ERR_NOUSERS));
+
+    }else{
+      //enviem el misatge a tots els usuaris conectats
+      LLISTABID_vesInici(&(info_client->connections));
+
+      do{
+        ci = LLISTABID_consulta(info_client->connections);
+
         printf("sending broadcast to socket %d\n", ci.socket);//KILL ME
         sendSocketMSG(ci.socket, message, 3);
-      }
 
-      LLISTABID_avanca(&(info_client->connections));
+        LLISTABID_avanca(&(info_client->connections));
 
-    }while (!LLISTABID_fi(info_client->connections));
-
+      }while (!LLISTABID_fi(info_client->connections));
+    }//else
   }//else
   //fi_ssemafor
 }//func
@@ -263,13 +276,15 @@ void downloadAudios(char * user, char * audio_file, Info * info_client) {
 
 int exit_server(Info * info_client){
   char * message;
+  char c_length[5];
   char response[8];
   connectionInfo ci;
-  int c_length;
+  int length;
   int status = 0;
 
-  c_length = strlen(info_client->cd.userName);
-  message = malloc(sizeof(char) * (c_length + strlen(info_client->cd.userName) + 7));
+  length = strlen(info_client->cd.userName);
+  itoa(length, c_length);
+  message = malloc(sizeof(char) * (length + strlen(info_client->cd.userName) + 7));
 
   LLISTABID_inici(info_client->connections);
 

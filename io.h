@@ -6,6 +6,8 @@
 #include "command.h"
 
 //
+void sig_handler();
+//
 void fixStrings(configurationData * cd);
 //
 void charTransfer(char * result, char * origin, int length);
