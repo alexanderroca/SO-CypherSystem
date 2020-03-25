@@ -209,7 +209,7 @@ void broadcast(char * data, Info * info_client, int exit){
 
         LLISTABID_avanca(&(info_client->connections));
 
-      }while (!LLISTABID_fi(info_client->connections));      
+      }while (!LLISTABID_fi(info_client->connections));
     }//if
   }else{
 

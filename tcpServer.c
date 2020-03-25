@@ -1,6 +1,6 @@
 #include "tcpServer.h"
 
-sem_t mutexExclusioUserConnect;
+sem_t mutexExclusioUsersList;
 int* end;
 char * user_input = NULL;
 char * buffer = NULL;
@@ -9,7 +9,10 @@ Info info_client;
 
 void sig_handler() {
   printf("in sig_handler\n");//KILL ME
+
+  sem_wait(&mutexExclusioUsersList);
   *end = checkCommand(CMD_EXIT, &info_client);
+  sem_post(&mutexExclusioUsersList);
 
   if(buffer != NULL){
     free(buffer);
@@ -19,10 +22,10 @@ void sig_handler() {
     free(user_input);
   }
 
+  sem_destroy(&mutexExclusioUsersList);
   exit(0);
 }
 
-//Creem dos threads
 int serverClient(configurationData cd){
 
   pthread_t t_server;
@@ -31,7 +34,6 @@ int serverClient(configurationData cd){
   int aux = 0;
   end = &aux;
   //ThreadServer ts;
-  //semaphore sem_clientServer;
 
   //clients = initializationClients();
 
@@ -46,9 +48,7 @@ int serverClient(configurationData cd){
   //ts.clients = clients;
   //ts.cd = cd;
 
-  //SEM_constructor_with_name(&sem_clientServer, ftok("tcpServer.c", atoi("clientServer")));
-
-  //SEM_init(&sem_clientServer, 1);
+  sem_init(&mutexExclusioUsersList, 0, 1);
 
   estat = pthread_create(&t_server, NULL, userAsServer, &info_server);
 
@@ -234,6 +234,7 @@ void *userAsServer(void *arg){
       printf("ret_w == %d\n", ret_w);
 
       if (ret_w >= 0) {
+        sem_wait(&mutexExclusioUsersList);
         ci.socket = newsock;
         printf("ci.socket == %d\n", ci.socket);
         printf("pre access list\n");
@@ -250,6 +251,7 @@ void *userAsServer(void *arg){
         sendConfirmationReply(newsock, info_server->cd);
         LLISTABID_vesFinal(&(info_server->connections));
         DS_ci = LLISTABID_consulta(info_server->connections);
+        sem_post(&mutexExclusioUsersList);
         pthread_create(&t_dedicatedServer, NULL, dedicatedServer, &DS_ci); //Creacio del thread del nou client, cal passar ts al thread
         //Fins aqui
         //sem_post(&mutexExclusioUserConnect); //Falta destruir el semafor quan es fa exit o Ctrl-C
