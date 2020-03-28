@@ -274,35 +274,8 @@ void downloadAudios(char * user, char * audio_file, Info * info_client) {
   } //else
 }//func
 
-int exit_server(Info * info_client, Info * info_server){
-  char * message;
-  char c_length[5];
-  char response[8];
-  connectionInfo ci;
-  int length;
-  int status = 0;
-
-  length = strlen(info_client->cd.userName);
-  itoa(length, c_length);
-  message = malloc(sizeof(char) * (length + strlen(info_client->cd.userName) + 7));
-
-  LLISTABID_inici(info_client->connections);
-
-  while(LLISTABID_fi(info_client->connections)){
-
-    ci = LLISTABID_consulta(info_client->connections);
-    sprintf(message, PROTOCOL_MESSAGE, MT_EXIT, H_EXIT, c_length, info_client->cd.userName);
-    write(ci.socket, message, strlen(message));
-    printf("preread\n");
-    read(ci.socket, response, sizeof(8));
-    printf("postread\n");
-    if(strcmp(response, H_CONOK))
-      LLISTABID_avanca(&info_client->connections);
-
-  } //while
+void exit_server(Info * info_client, Info * info_server){
 
   LLISTABID_destrueix(&info_client->connections);
   LLISTABID_destrueix(&info_server->connections);
-
-  return status;
 }

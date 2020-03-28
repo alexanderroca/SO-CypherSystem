@@ -19,6 +19,6 @@ void broadcast(char * data, Info * info_client, int exit);
 void receiveCD(int sockfd, connectionInfo * ci);
 void showAudios(char* userName, Info * info_client);
 void downloadAudios(char * user, char * audio_file, Info * info_client);
-int exit_server(Info * info_client, Info * info_server);
+void exit_server(Info * info_client, Info * info_server);
 
 #endif
