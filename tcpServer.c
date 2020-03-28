@@ -29,6 +29,27 @@ void sig_handler() {
   exit(0);
 }
 
+void copyCD(Info * info, configurationData * cd){
+  info->cd.userName = (char*)malloc(sizeof(char) * (strlen(cd->userName) + 1));
+  printf("malloc1\n");
+  info->cd.ip = (char*)malloc(sizeof(char) * (strlen(cd->ip) + 1));
+  printf("malloc2\n");
+  info->cd.audioDirectory = (char*)malloc(sizeof(char) * (strlen(cd->audioDirectory) + 1));
+  printf("malloc3\n");
+
+
+  strcpy(info->cd.userName, cd->userName);
+  printf("userName\n");//KILL ME
+  strcpy(info->cd.ip, cd->ip);
+  printf("ip\n");//KILL ME
+  strcpy(info->cd.audioDirectory, cd->audioDirectory);
+  printf("audioDirectory\n");//KILL ME
+
+  info->cd.socket = cd->socket;
+  info->cd.port = cd->port;
+  info->cd.numConnections = cd->numConnections;
+}
+
 int serverClient(configurationData cd){
 
   pthread_t t_server;
@@ -41,8 +62,16 @@ int serverClient(configurationData cd){
 
   write(1, WELCOME, strlen(WELCOME));
 
-  info_client.cd = cd;
-  info_server.cd = cd;
+  copyCD(&info_client, &cd);
+  copyCD(&info_server, &cd);
+
+  free(cd.userName);
+  free(cd.audioDirectory);
+  free(cd.connectionavailable -> toConnect);
+  free(cd.connectionavailable);
+  free(cd.ip);
+
+  printf("info_client cd.userName = %s\n", info_client.cd.userName);//KILL ME
 
   info_client.connections = LLISTABID_crea();
   info_server.connections = LLISTABID_crea();
@@ -81,11 +110,6 @@ int serverClient(configurationData cd){
 void userAsClient(){
 
   printf("in user as client\n");//KILL ME
-  //semaphore sem_clientServer;
-  //connectedList connected_list;
-
-  //connected_list.num_connected = 0;
-  //connected_list.info = (connectedInfo*)malloc(sizeof(connectedInfo));
   user_input = (char*)malloc(sizeof(char));
   buffer = (char*)malloc(sizeof(char) * (strlen(info_client.cd.userName) + 5));
   //SEM_constructor_with_name(&sem_clientServer, ftok("tcpServer.c", atoi("clientServer")));
@@ -111,6 +135,8 @@ void userAsClient(){
 
   }//while
 
+  free(user_input);
+  free(buffer);
   sig_handler();
 }//func
 
