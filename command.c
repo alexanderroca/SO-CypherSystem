@@ -231,6 +231,8 @@ void broadcast(char * data, Info * info_client, int exit){
       }while (!LLISTABID_fi(info_client->connections));
     }//else
   }//else
+
+  free(message);
   //fi_ssemafor
 }//func
 

@@ -2,8 +2,8 @@
 
 sem_t mutexExclusioUsersList;
 int* end;
-char * user_input = NULL;
-char * buffer = NULL;
+char * user_input;
+char * buffer;
 
 Info info_client;
 Info info_server;
@@ -25,25 +25,29 @@ void sig_handler() {
     free(user_input);
   }
 
+  deleteInfo();
   sem_destroy(&mutexExclusioUsersList);
   exit(0);
 }
 
+void deleteInfo(){
+  free(info_client.cd.userName);
+  free(info_client.cd.audioDirectory);
+  free(info_client.cd.ip);
+
+  free(info_server.cd.userName);
+  free(info_server.cd.audioDirectory);
+  free(info_server.cd.ip);
+}
+
 void copyCD(Info * info, configurationData * cd){
   info->cd.userName = (char*)malloc(sizeof(char) * (strlen(cd->userName) + 1));
-  printf("malloc1\n");
   info->cd.ip = (char*)malloc(sizeof(char) * (strlen(cd->ip) + 1));
-  printf("malloc2\n");
   info->cd.audioDirectory = (char*)malloc(sizeof(char) * (strlen(cd->audioDirectory) + 1));
-  printf("malloc3\n");
-
 
   strcpy(info->cd.userName, cd->userName);
-  printf("userName\n");//KILL ME
   strcpy(info->cd.ip, cd->ip);
-  printf("ip\n");//KILL ME
   strcpy(info->cd.audioDirectory, cd->audioDirectory);
-  printf("audioDirectory\n");//KILL ME
 
   info->cd.socket = cd->socket;
   info->cd.port = cd->port;
@@ -90,18 +94,14 @@ int serverClient(configurationData cd){
 
   info_client.id_thread = t_server;
 
-  //pthread_join(t_server, NULL);
   userAsClient();
-  /*
-  estat = pthread_create(&t_client, NULL, userAsClient, &info_client);
-  if(estat != 0){
-    perror("pthread_create");
-    return -1;
-  }  //if
 
-  pthread_join(t_client, NULL);
-  */
-  //SEM_destructor(&sem_clientServer);
+  sem_wait(&mutexExclusioUsersList);
+  exit_server(&info_client, &info_server);
+  sem_post(&mutexExclusioUsersList);
+
+  deleteInfo();
+  sem_destroy(&mutexExclusioUsersList);
 
   return 0;
 }
@@ -134,10 +134,6 @@ void userAsClient(){
     //SEM_signal(&sem_clientServer);
 
   }//while
-
-  free(user_input);
-  free(buffer);
-  sig_handler();
 }//func
 
 //Servidor dedicat per client connectat al serverClient

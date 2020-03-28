@@ -18,6 +18,7 @@ void userAsClient();
 void *userAsServer(void *arg);
 void sendConfirmationReply(int sockfd, configurationData cd);
 void copyCD(Info * info, configurationData * cd);
+void deleteInfo();
 
 //function used by dedicated server to handle received messages
 int DSMsgHandler(char * message, int type, char * client_name, connectionInfo * ci);

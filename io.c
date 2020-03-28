@@ -897,17 +897,22 @@ int  checkCommand(char * user_input, Info * info_client) {
 	printf("Inside checkCommand\n");
 
 	char *aux, **ptr;
-	int c, exit;
+	int i, c, exit;
 
+	i = 0;
+	c = 0;
 	exit = 0;
-	ptr = malloc (sizeof (char *));
+
+	ptr = (char**) malloc (sizeof (char *));
+	aux = (char*) malloc(sizeof(char) * (strlen(user_input) + 1));
 	assert (ptr != NULL);
 
 	//Llegim l'input de l'usuari i el guardem paraula a paraula a ptr
 	for (c = 0, aux = strtok (user_input, " ");
 					aux != NULL; aux = strtok (NULL, " "), c++){
 
-		ptr = realloc (ptr, sizeof (char *) * (c + 2));
+		ptr = realloc (ptr, sizeof (char *) * ((c + 2) + 1));
+		ptr[c] = (char*) malloc(sizeof(char) * (strlen(aux) + 1));
 		ptr[c] = aux;
 	}
 
@@ -945,6 +950,16 @@ int  checkCommand(char * user_input, Info * info_client) {
 			}//else broadcast
 		}//else say
 	}//else connect
+
+	printf("preforfree\n");//KILL ME
+	printf("c == %d\n", c);//KILL ME
+	for (i = 0; i <= c; i++) {
+		free(ptr[i]);
+	}
+
+	printf("prefree ptr\n");
+	free(ptr);
+	free(aux);
 
 	printf("exiting checkCommand\n");//KILL ME
 	return exit;
