@@ -6,12 +6,15 @@ char * user_input = NULL;
 char * buffer = NULL;
 
 Info info_client;
+Info info_server;
 
 void sig_handler() {
   printf("in sig_handler\n");//KILL ME
 
   sem_wait(&mutexExclusioUsersList);
   *end = checkCommand(CMD_EXIT, &info_client);
+  exit_server(&info_client, &info_server);
+  printf("passa el exitserver\n");
   sem_post(&mutexExclusioUsersList);
 
   if(buffer != NULL){
@@ -30,7 +33,6 @@ int serverClient(configurationData cd){
 
   pthread_t t_server;
   int estat = 0;
-  Info info_server;
   int aux = 0;
   end = &aux;
   //ThreadServer ts;
@@ -109,8 +111,7 @@ void userAsClient(){
 
   }//while
 
-  //pthread_cancel(info_client->id_thread);
-
+  sig_handler();
 }//func
 
 //Servidor dedicat per client connectat al serverClient
@@ -187,7 +188,7 @@ int DSMsgHandler(char * message, int type, char * client_name, connectionInfo * 
 void *userAsServer(void *arg){
 
   pthread_t t_dedicatedServer;
-  sem_init(&mutexExclusioUserConnect, 0, 1);
+  sem_init(&mutexExclusioUsersList, 0, 1);
   int ret_w;
   Info * info_server = (Info *) arg;
   connectionInfo ci;

@@ -274,7 +274,7 @@ void downloadAudios(char * user, char * audio_file, Info * info_client) {
   } //else
 }//func
 
-int exit_server(Info * info_client){
+int exit_server(Info * info_client, Info * info_server){
   char * message;
   char c_length[5];
   char response[8];
@@ -293,20 +293,16 @@ int exit_server(Info * info_client){
     ci = LLISTABID_consulta(info_client->connections);
     sprintf(message, PROTOCOL_MESSAGE, MT_EXIT, H_EXIT, c_length, info_client->cd.userName);
     write(ci.socket, message, strlen(message));
+    printf("preread\n");
     read(ci.socket, response, sizeof(8));
-
+    printf("postread\n");
     if(strcmp(response, H_CONOK))
       LLISTABID_avanca(&info_client->connections);
-    else if(strcmp(response, H_CONKO)){
-      //Mostrar error
-      status = 1;
-    } //else-if
 
   } //while
 
-  //Semafor_START
   LLISTABID_destrueix(&info_client->connections);
-  //Semafor_END
+  LLISTABID_destrueix(&info_server->connections);
 
   return status;
 }
