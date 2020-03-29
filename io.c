@@ -457,6 +457,13 @@ int sendSocketMSG(int sockfd, char * data, int type){
 			free(message);
 			break;
 		case 1:
+			//CONNECT
+			length = strlen(data);
+			itoa(length, c_length);
+			message = (char*)malloc(sizeof(char) * (length + strlen(H_TRNAME) + strlen(c_length) + 9));
+
+			sprintf(message, PROTOCOL_MESSAGE, MT_CONNECTION, H_TRNAME, c_length, data);
+			write(sockfd, message, strlen(message));
 			break;
 		case 2:
 			printf("in case 2\n");//KILL ME
@@ -609,6 +616,7 @@ int receiveSocketMSG(int sockfd, int * type, char ** data){
 	switch (type_int) {
 
 		case 0://RECEIVE CD
+		case 1://CONNECT
 		case 2://RECEIVE MSG
 		case 3://RECEIVE BROADCAST
 		case 6://RECEIVE EXIT
@@ -624,9 +632,6 @@ int receiveSocketMSG(int sockfd, int * type, char ** data){
 			printf("strlen post copy == %ld\n", strlen(*data));//KILL ME
 			printf("data in receiveSocketMSG == %s\n", *data);//KILL ME
 
-			break;
-		case 1:
-		//CONNECT
 			break;
 		case 4:
 		//SHOW AUDIOS
@@ -951,7 +956,7 @@ int  checkCommand(char * user_input, Info * info_client) {
 		}//else say
 	}//else connect
 
-	printf("preforfree\n");//KILL ME
+	/*printf("preforfree\n");//KILL ME
 	printf("c == %d\n", c);//KILL ME
 	for (i = 0; i <= c; i++) {
 		free(ptr[i]);
@@ -960,7 +965,7 @@ int  checkCommand(char * user_input, Info * info_client) {
 	printf("prefree ptr\n");
 	free(ptr);
 	free(aux);
-
+*/
 	printf("exiting checkCommand\n");//KILL ME
 	return exit;
 }//func

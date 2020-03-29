@@ -111,6 +111,9 @@ void connectToPort(uint16_t portToConnect, char* ipToConnect, Info * info_client
           //cl->num_connected++;
 
           write(1, "Connecting...\n", strlen("Connecting...\n"));
+
+          sendSocketMSG(sockfd, info_client->cd.userName, 1);
+
           LLISTABID_vesFinal(&(info_client->connections));
           receiveCD(sockfd, &ci);
           LLISTABID_inserir(&(info_client->connections), ci);
@@ -122,13 +125,6 @@ void connectToPort(uint16_t portToConnect, char* ipToConnect, Info * info_client
       } //else
     } //else
   } //else
-  //printf("socket == %d\n", ci.socket);
-  //printf("user connected %s\n", ci.userName);//KILL ME
-  //printf("audio audioDirectory %s\n", ci.audioDirectory);//KILL ME
-  //printf("ip %s\n", ci.ip);//KILL ME
-  //printf("port %d\n", ci.port);//KILL ME
-  //sprintf(buffer, "%d connected: %s\n", portToConnect, cd.userName);
-  //write(1, buffer, strlen(buffer));
 }//func
 
 void receiveCD(int sockfd, connectionInfo * ci){

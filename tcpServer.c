@@ -5,6 +5,8 @@ int* end;
 char * user_input;
 char * buffer;
 
+int stop = 0;
+
 Info info_client;
 Info info_server;
 
@@ -216,6 +218,8 @@ void *userAsServer(void *arg){
   connectionInfo ci;
   connectionInfo DS_ci;
   connectionInfo ci_test;//KILL ME
+  int connect = 1;
+  char *user_connected;
 
   ci.userName = (char*)malloc(sizeof(char));
   ci.audioDirectory = (char*)malloc(sizeof(char));
@@ -257,25 +261,32 @@ void *userAsServer(void *arg){
       printf("ret_w == %d\n", ret_w);
 
       if (ret_w >= 0) {
-        sem_wait(&mutexExclusioUsersList);
-        ci.socket = newsock;
-        printf("ci.socket == %d\n", ci.socket);
-        printf("pre access list\n");
-        LLISTABID_vesFinal(&(info_server->connections));
-        LLISTABID_inserir(&(info_server->connections), ci);
-        ci_test = LLISTABID_consulta(info_server->connections);//KILL ME
 
-        printf("File descriptor socket: %d\n", ci_test.socket);//KILL ME
-        //ts->clients.num_sockets++;
-        //ts->clients.sockets = (configurationData*)realloc(ts->clients.sockets, sizeof(int) * (ts->clients.num_sockets + 1));
-        //ts->clients.sockets[ts->clients.num_sockets - 1].userName = ts->cd.userName;
-        //ts->clients.sockets[ts->clients.num_sockets - 1].audioDirectory = ts->cd.audioDirectory;
+          //signal(SIGALRM, sigalrm_handler);
+          //alarm(1);
+          //while(!stop);
+          printf("user_to connect: %s\n", user_connected);
+          receiveSocketMSG(newsock, &connect, &user_connected);
+          printf("user_to connect: %s\n", user_connected);
+          
+          if(user_connected != NULL){
 
-        sendConfirmationReply(newsock, info_server->cd);
-        LLISTABID_vesFinal(&(info_server->connections));
-        DS_ci = LLISTABID_consulta(info_server->connections);
-        sem_post(&mutexExclusioUsersList);
-        pthread_create(&t_dedicatedServer, NULL, dedicatedServer, &DS_ci); //Creacio del thread del nou client, cal passar ts al thread
+            sem_wait(&mutexExclusioUsersList);
+            ci.socket = newsock;
+            printf("ci.socket == %d\n", ci.socket);
+            printf("pre access list\n");
+            LLISTABID_vesFinal(&(info_server->connections));
+            LLISTABID_inserir(&(info_server->connections), ci);
+            ci_test = LLISTABID_consulta(info_server->connections);//KILL ME
+
+            printf("File descriptor socket: %d\n", ci_test.socket);//KILL ME
+
+            sendConfirmationReply(newsock, info_server->cd);
+            LLISTABID_vesFinal(&(info_server->connections));
+            DS_ci = LLISTABID_consulta(info_server->connections);
+            sem_post(&mutexExclusioUsersList);
+            pthread_create(&t_dedicatedServer, NULL, dedicatedServer, &DS_ci); //Creacio del thread del nou client, cal passar ts al thread
+          } //if
         //Fins aqui
         //sem_post(&mutexExclusioUserConnect); //Falta destruir el semafor quan es fa exit o Ctrl-C
       }//if
