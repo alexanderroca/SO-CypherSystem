@@ -1,18 +1,5 @@
 #include "io.h"
 
-void fixStrings(configurationData * cd){
-	cd->userName[strlen(cd->userName) - 1] = '\0';
-	cd->audioDirectory[strlen(cd->audioDirectory) - 1] = '\0';
-	cd->ip[strlen(cd->ip) - 1] = '\0';
-}//func
-
-void charTransfer(char * result, char * origin, int length){
-	int i = 0;
-	for (i = 0; i < length; i++) {
-		result[i] = origin[i];
-	}//for
-}//func
-
 /******************************************************************************
 * <Description>
 * itoa (integer to ASCII) gets the vale of an integer and converts it to a
@@ -80,7 +67,7 @@ void clearBuffer(char* buffer){
 		}
 }//func
 
-
+//DEPRECATED
 char *get_message(int fd, char delimiter) {
 	char *msg = (char *) malloc(1);
 	char current;
@@ -280,12 +267,9 @@ int readAudioFile(char* path, int socket){
 	}	//if
 	else{
 		//send OK
-		//write(socket, H_FILEOK, strlen(H_FILEOK));
-
 		int i, trunk_st_size;
 		int num_bytes;
 
-		printf("path == %s\n", path);
 		stat(path, &st);
 
 		trunk_st_size = (int) st.st_size / 255;
@@ -295,10 +279,8 @@ int readAudioFile(char* path, int socket){
 		while(i < (trunk_st_size * 255)){
 			bzero(buff, 255);
 			num_bytes = read(fd, buff, 255);
-			//write(socket, buff, num_bytes);
 			sendServerCheck(socket, 5, buff, num_bytes, 1);
 			usleep(1000);
-			//printf("num_bytes: %d - i: %d - trunk_size: %d\n", num_bytes, i, trunk_st_size * 255);
 			i += 255;
 		}	//while
 
@@ -307,22 +289,16 @@ int readAudioFile(char* path, int socket){
 			i = st.st_size - (trunk_st_size * 255);
 			printf("I = %d\n", i);
 			num_bytes = read(fd, buff, i);
-			//write(socket, buff, i);
 			sendServerCheck(socket, 5, buff, i, 1);
 		}	//if
-
-		//write(socket, H_EOF, strlen(H_EOF));
-		printf("EXIT\n");//KILL ME
 
 		md5sum_file = (char*)malloc(sizeof(char) * 36);
 
 		executeMD5sum(path, md5sum_file);
-		printf("md5sum_file: %s\n", md5sum_file);//KILL ME
 
 		if(md5sum_file != NULL){
 			sendEOFProtocol(socket);
 			write(socket, md5sum_file, 32);
-			printf("post md5sum send\n");//KILL ME
 		}
 		else{
 			write(1, MD5SUM_FAILED, strlen(MD5SUM_FAILED));
@@ -348,12 +324,6 @@ int getAudioFile(char* fileName, char* directoryUserConnected, int socket, char*
 
 	path = (char*)malloc(sizeof(char) * (strlen(directoryUserConnected) + strlen(fileName) + 2));
 	sprintf(path, "%s/%s", directoryUserConnected, fileName);
-	printf("path == %s\n", path);
-	//path = strcat(directoryUserConnected, "/");
-	//path = strcat(path, fileName);
-
-	//Check if file exists
-	//char* response = get_message(socket, ']');
 
 	num_bytes = receiveSocketMSG(socket, &type, &(response));
 
@@ -363,46 +333,27 @@ int getAudioFile(char* fileName, char* directoryUserConnected, int socket, char*
 		int fd = open(path, O_CREAT|O_WRONLY,0644);
 
 		if(fd < 0){
-			printf("Fd: %d\n", fd);
 			write(1, ERROR_OPENING_FILE, strlen(ERROR_OPENING_FILE));
 		}	//if
 		else{
-
-			printf("file opened correctly\n");
 			//escrivim primer batch de bytes
 			write(fd, response, num_bytes);
 			free(response);
-			printf("Saving File...\n");
 
 			while(1){
-				//num_bytes = read(socket, buffer, 255);
 				num_bytes = receiveSocketMSG(socket, &type, &(response));
-				printf("post receive\n");//KILL ME
-				//printf("num_bytes == %d response == %s\n", num_bytes, response);
 				if(num_bytes == 0){ //if(strcmp(buffer, H_EOF) == 0)
-						printf("in if\n");//KILL ME
-						printf("EOF? -> %s\n", response);
 						break;
 
 				}
 
-				printf("post if\n");//KILL ME
 				write(fd, response, num_bytes);
 				free(response);
-				printf("post bucle\n");//KILL ME
 			}	//while
-
-			//bzero(buffer, 255);
-			//read(socket, buffer, 255);
-
-			printf("Path: %s\n", path);//KILL ME
 
 			md5sum_file = (char*)malloc(sizeof(char) * 36);
 
 			executeMD5sum(path, md5sum_file);
-
-			printf("response: %s\n", response);//KILL ME
-			printf("md5sum_file: %s\n", md5sum_file);//KILL ME
 
 			if(strcmp(response, md5sum_file) == 0){
 				buffer = (char*)malloc(sizeof(char) *
@@ -438,12 +389,28 @@ void sendEOFProtocol(int sockfd){
 
 }//func
 
+/******************************************************************************
+* <Description>
+* sendSocketMSG has diferent scenarios for each kind of message that can be
+* sent via sockets, type 0 corresponds to server configuration messages, type 1
+* corresponds to connection messages, type 2 corresponds to normal message
+* sending, type 3 corresponds to broadcast messages, type 4 corresponds to show
+* audios messages, type 5 corresponds to download messages and finally type 6
+* corresponds to exit messages.
+*
+* @authors: Victor Blasco <victor.blasco@students.salle.url.edu>
+* @version: 1.4
+*
+* @param: sockfd int that identifies the socket to which the message will be sent
+* @param: data string of data that will be sent
+* @param: type int that idnetifies which kind of message will be sent
+*
+* @return: returns 1
+******************************************************************************/
 int sendSocketMSG(int sockfd, char * data, int type){
 	char* message;
 	char c_length[5];
 	int length = 0;
-
-	printf("data == %s\n", data);//KILL ME
 
 	switch (type) {
 		case 0:
@@ -466,23 +433,17 @@ int sendSocketMSG(int sockfd, char * data, int type){
 			write(sockfd, message, strlen(message));
 			break;
 		case 2:
-			printf("in case 2\n");//KILL ME
+			//SEND_MSG
 			length = strlen(data);
 			itoa(length, c_length);
-			printf("size len %d\n", length);//KILL ME
-			printf("size strlen %ld\n", strlen(H_MSG));//KILL ME
-			printf("size %ld\n", length + strlen(H_MSG) + 10);//KILL ME
 			message = (char*)malloc(sizeof(char) * (length + strlen(H_MSG) + 10));
-			printf("post malloc\n");
 
 			sprintf(message, PROTOCOL_MESSAGE, MT_SAY, H_MSG, c_length, data);
-			printf("post sprintf\n");
 			write(sockfd, message, strlen(message));
-			printf("post write\n");
 			free(message);
 			break;
 		case 3:
-			printf("in case 3\n");//KILL ME
+			//BROADCAST
 			length = strlen(data);
 			itoa(length, c_length);
 			message = (char*)malloc(sizeof(char) * (length + strlen(H_BROAD) + 10));
@@ -493,20 +454,15 @@ int sendSocketMSG(int sockfd, char * data, int type){
 			break;
 		case 4:
 			//SHOW_AUDIOS
-			printf("in case 4\n");//KILL ME
-			printf("data post case 4 == %s\n", data);//KILL ME
 			itoa(length, c_length);
 
 			if (data == NULL) {
-
-				printf("in audio list request send\n");//KILL ME
 				message = (char*)malloc(sizeof(char) * (length + strlen(H_SHOWAUDIO) + 10));
 
 				sprintf(message, PROTOCOL_MESSAGE, MT_SHOWAUDIO, H_SHOWAUDIO, c_length, " ");
-				printf("message sent == %s\n", message);//KILL ME
 				write(sockfd, message, strlen(message));
-			}else{
 
+			}else{
 				length = strlen(data);
 				itoa(length, c_length);
 				message = (char*)malloc(sizeof(char) * (length + strlen(H_LISTAUDIO) + 10));
@@ -519,28 +475,26 @@ int sendSocketMSG(int sockfd, char * data, int type){
 			break;
 		case 5:
 			//DOWNLOAD_AUDIOS
-			printf("in sendSocketMSG download audios\n");//KILL ME
 			length = strlen(data);
 			itoa(length, c_length);
 			message = (char*)malloc(sizeof(char) * (length + strlen(H_AUDIOREQ) + 10));
 
 			sprintf(message, PROTOCOL_MESSAGE, MT_DOWNAUDIO, H_AUDIOREQ, c_length, data);
-			printf("message sent == %s\n", message);//KILL ME
 			write(sockfd, message, strlen(message));
 			free(message);
+
 			break;
 
 		case 6:
 			//EXIT
-			printf("in sendSocketMSG exit\n");//KILL ME
 			length = strlen(data);
 			itoa(length, c_length);
 			message = (char*)malloc(sizeof(char) * (length + strlen(H_EXIT) + 10));
 
 			sprintf(message, PROTOCOL_MESSAGE, MT_EXIT, H_EXIT, c_length, data);
-			printf("message sent == %s\n", message);//KILL ME
 			write(sockfd, message, strlen(message));
 			free(message);
+
 			break;
 
 		default:
@@ -549,17 +503,31 @@ int sendSocketMSG(int sockfd, char * data, int type){
 			break;
 	}//switch
 
-
 	return 1;
 }//func
 
+/******************************************************************************
+* <Description>
+* receiveSocketMSG is used to decypher the contents received via a given socket
+* firstly it divides the received string in tis components and once it knows what
+* kind of message it has received it proceeds to extract the useful data and
+* return it via the data parameter.
+*
+* @authors: Victor Blasco <victor.blasco@students.salle.url.edu>
+* @version: 1.4
+*
+* @param: sockfd socket through which the message will be received
+* @param: int pointer type so calling function can identify which type of
+*					message has been received
+* @param: char double pointer to return the useful data which has been received
+*
+* @return: length integer representing total length of received data
+******************************************************************************/
 int receiveSocketMSG(int sockfd, int * type, char ** data){
 	char * buffer, * aux;
 	int i, c, num_camps, type_int, length;
 	char **ptr; //ptr[0] = Type ptr[1] = header ptr[2] = length
 	*data = malloc(sizeof(char));
-
-	printf("sockfd = %d - type = %d\n", sockfd, *type);
 
 	length = 0;
 
@@ -629,24 +597,18 @@ int receiveSocketMSG(int sockfd, int * type, char ** data){
 				sprintf(*data, "%s %s", *data, ptr[c]);
 			}//for
 
-			printf("strlen post copy == %ld\n", strlen(*data));//KILL ME
-			printf("data in receiveSocketMSG == %s\n", *data);//KILL ME
-
 			break;
 		case 4:
 		//SHOW AUDIOS
-		printf("Inside show audios recieve MSG\n");
 			if (strcmp(ptr[1], H_SHOWAUDIO) == 0) {
-
-				printf("in RCV show audio\n");//KILL ME
 				*data = realloc(*data, sizeof(char) * (strlen(FILL_SHOWAUDIO) + 1));
 				strcpy(*data, FILL_SHOWAUDIO);
-			}else{
 
-				printf("in RCV list audio\n");//KILL ME
+			}else{
 				if(strcmp(ptr[3], H_AUDIOKO) == 0){
 					*data = realloc(*data, sizeof(char) * (strlen(H_AUDIOKO) + 1));
 					strcpy(*data, H_AUDIOKO);
+
 				}	//if
 				else{
 					*data = realloc(*data, sizeof(char) * (length + 1));
@@ -656,43 +618,33 @@ int receiveSocketMSG(int sockfd, int * type, char ** data){
 
 					for (c = 4; c < num_camps; c++) {
 						sprintf(*data, "%s %s", *data, ptr[c]);
+
 					}//for
 				}	//else
 			}//else
 
-			printf("data in RCV == %s\n", *data);//KILL ME
 			break;
 		case 5:
 		//DOWNLOAD AUDIOS
-			printf("in receeive audio download\n");//KILL ME
 			if (strcmp(ptr[1], H_AUDIOKO) == 0) {
-				printf("audioko\n");//KILL ME
 				*data = realloc(*data, sizeof(char) * (strlen(H_AUDIOKO) + 2));
 				strcpy(*data, H_AUDIOKO);
 
 			}else{
 				if (strcmp(ptr[1], H_AUDIOREQ) == 0) {
-					printf("audioreq\n");//KILL ME
 					*data = realloc(*data, sizeof(char) * (strlen(ptr[3]) + 2));
 					strcpy(*data, ptr[3]);
 
 				}else{
 					if (strcmp(ptr[1], H_AUDIORES) == 0) {
-						printf("audiores\n");//KILL ME
 						*data = realloc(*data, sizeof(char) * (length + 5));
-						printf("post realloc\n");//KILL ME
 
-						printf("pre for\n");//KILL ME
 						for (i = 0; i < length; i++) {
 							data[0][i] = ptr[3][i];
 						}//for
-						printf("post for\n");//KILL ME
-
-						//charTransfer(*data, ptr[3], length);
 
 					}else{
 						if (strcmp(ptr[1], H_EOF) == 0) {
-							printf("audioEOF\n");//KILL ME
 							ptr[3][32] = '\0';
 							length = 0;
 							*data = realloc(*data, sizeof(char) * (strlen(ptr[3]) + 2));
@@ -722,6 +674,23 @@ int receiveSocketMSG(int sockfd, int * type, char ** data){
 	return length;
 }//func
 
+/******************************************************************************
+* <Description>
+* sendServerCheck sends messages to confirm the reception of a given message
+* has been received correctly such as MSGOK
+*
+* @authors: Victor Blasco <victor.blasco@students.salle.url.edu>
+* @version: 1.4
+*
+* @param: sockfd int that identifies the socket to which the message will be sent
+* @param: data string of data that will be sent
+* @param: type int that idnetifies which kind of message will be sent
+* @param: length int that identifies the length of the message
+* @param: ok int that will detemrmine i¡f the message to be sent is of kind OK
+*  				or KO
+*
+* @return: returns 1
+******************************************************************************/
 int sendServerCheck(int sockfd, int type, char * data, int length, int ok){
 	char * message;
 	char c_length[5];
@@ -796,6 +765,19 @@ int sendServerCheck(int sockfd, int type, char * data, int length, int ok){
 
 }//func
 
+/******************************************************************************
+* <Description>
+* receiveServerCheck receives all the messages which are replies to a previous
+* message such as MSGOK or MSGKO
+*
+* @authors: Victor Blasco <victor.blasco@students.salle.url.edu>
+* @version: 1.4
+*
+* @param: sockfd int that identifies the socket throuhg which the message will
+*					be received
+* @param: data string of data that has been received
+*
+******************************************************************************/
 void receiveServerCheck(int sockfd, char * data){
 	char * buffer, * aux;
 	int c, type, length;
@@ -841,25 +823,6 @@ void receiveServerCheck(int sockfd, char * data){
 		break;
 	}//switch
 }//func
-
-/*
-void sendMD5Check(int sockfd, int ok){
-	char * message;
-
-	if (ok) {
-		message = (char*)malloc(sizeof(char) * (strlen(H_MD5OK) + 5));
-		sprintf(message, PROTOCOL_MESSAGE, MT_DOWNAUDIO, H_MD5OK, 0, NULL);
-
-	}else{
-		message = (char*)malloc(sizeof(char) * (strlen(H_MD5KO) + 5));
-		sprintf(message, PROTOCOL_MESSAGE, MT_DOWNAUDIO, H_MD5KO, 0, NULL);
-
-	}
-
-	write(sockfd, message, strlen(message));
-	free(message);
-}
-*/
 
 /******************************************************************************
 * <Description>
@@ -1377,6 +1340,22 @@ void checkCMDShow(char **ptr, int c, Info * info_client){
 
 }//func
 
+/******************************************************************************
+* <Description>
+* checkUserConnnected searches through the list of connected users and look to
+* any of their userNames coincide with the functions userName parameter, if the
+* user is found in the list it returns the users socket file descriptor, if not
+* it returns -1
+*
+* @author: Alexander Roca <alexander.roca@students.salle.url.edu>
+* @version: 1.5
+*
+* @param: userName name of the user to be found
+* @param: list, list through which the user will be searched
+*
+* @return: returns -1 if the user was not found or the users socket file
+* 				 descriptor if he was found
+******************************************************************************/
 int checkUserConnnected(char* userName, LlistaBid list){
 	connectionInfo ci;
 	int socket;
@@ -1405,6 +1384,7 @@ int checkUserConnnected(char* userName, LlistaBid list){
 
   return socket;
 }//func
+
 
 void replyDirectoryUserConnected(char* directory_name, int socket){
 
@@ -1458,6 +1438,17 @@ void replyDirectoryUserConnected(char* directory_name, int socket){
   } //else
 }//func
 
+/******************************************************************************
+* <Description>
+* createAudioListMSG creates a sendable message out of the list of elements
+* created by the audio file search by substituting all the '\n' with blank spaces
+*
+* @author: Alexander Roca <alexander.roca@students.salle.url.edu>
+* @version: 1.5
+*
+* @param: list string with all the elemets that have to be sent
+*
+******************************************************************************/
 void createAudioListMSG(char * list){
 	unsigned int i = 0;
 
@@ -1505,6 +1496,18 @@ void readDirectoryUserConnected(int socket){
 	free(aux);
 }//func
 
+/******************************************************************************
+* <Description>
+* showAudioFiles writes on screen all the audio files found in a given string
+* in the desired manner
+*
+* @author: Alexander Roca <alexander.roca@students.salle.url.edu>
+* @version: 1.5
+*
+* @param: files, char** with all the diferent strings that have to be displayed
+* @param: num_files, number of different files to be displayed
+*
+******************************************************************************/
 void showAudioFiles(char** files, int num_files){
 
 	int i;
@@ -1553,6 +1556,18 @@ void showPorts(int ports[], int num_ports){
   free(buffer);
 }//func
 
+/******************************************************************************
+* <Description>
+* setupCI initializes all the parameters of the CI type to a value to avoid having
+* uninitialized values
+*
+* @author: Victor Blasco <victor.blasco@students.salle.url.edu>
+* @version: 1.6
+*
+* @param: cd source from which the values of ci will be initialized
+* @param: ci strucutre which will be initialized
+*
+******************************************************************************/
 void setupCI(configurationData cd, connectionInfo * ci){
 
 	ci->socket = -1;
@@ -1568,6 +1583,17 @@ void setupCI(configurationData cd, connectionInfo * ci){
 
 }//func
 
+/******************************************************************************
+* <Description>
+* initString sets all the values of a string to '\0'
+*
+* @author: Victor Blasco <victor.blasco@students.salle.url.edu>
+* @version: 1.6
+*
+* @param: string, char* that has to be initialized
+* @param: size, length of the string 
+*
+******************************************************************************/
 void initString(char * string, int size){
 	int i;
 
