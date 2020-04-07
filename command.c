@@ -63,13 +63,6 @@ void showConnections(uint16_t port){
 void connectToPort(uint16_t portToConnect, char* ipToConnect, Info * info_client) {
 
   connectionInfo ci;
-  /*
-  ci.userName = (char*)malloc(sizeof(char) + 1);
-  ci.audioDirectory = (char*)malloc(sizeof(char) + 1);
-  ci.ip = (char*)malloc(sizeof(char) + 1);
-
-  setupCI(info_client->cd, &ci);
-  */
 
   //Comprovem la validesa del port
   if(portToConnect < atoi(MIN_PORT) && portToConnect > atoi(MAX_PORT)){
@@ -108,7 +101,6 @@ void connectToPort(uint16_t portToConnect, char* ipToConnect, Info * info_client
           write(1, ERR_PORT_UNAVAILABLE, strlen(ERR_PORT_UNAVAILABLE));
         } //if
         else{
-          //cl->num_connected++;
 
           write(1, "Connecting...\n", strlen("Connecting...\n"));
 
@@ -140,13 +132,10 @@ void receiveCD(int sockfd, connectionInfo * ci){
   receiveSocketMSG(sockfd, &type, &(ci->ip));
 
   receiveSocketMSG(sockfd, &type, &(buffer));
-  //printf("buffer in receive CD == %s\n", buffer);//KILL ME
   port = atoi(buffer);
   ci->port = (uint16_t)port;
 
   free(buffer);
-  //printf("Llegim el bytes del fitxer d'audio\n");
-  //getAudioFile("Hymn of the Soviet Union - Russian Red Army Choir.mp3", ci.audioDirectory, sockfd, ci.userName);//KILL ME
 }//func
 
 void say(char * user, char * data, Info * info_client){
@@ -156,7 +145,6 @@ void say(char * user, char * data, Info * info_client){
 
   message = (char*)malloc(sizeof(char) * (strlen(data) + strlen(info_client->cd.userName) + 5));
   sprintf(message, SEND_MSG, info_client->cd.userName, data);
-  printf("in say\n");//KILL ME
 
   if (LLISTABID_esBuida(info_client->connections)) {
     write(1, ERR_NOUSERS, strlen(ERR_NOUSERS));
@@ -167,7 +155,6 @@ void say(char * user, char * data, Info * info_client){
     do{
       ci = LLISTABID_consulta(info_client->connections);
       if (strcasecmp(ci.userName, user) == 0) {
-        printf("MSG to send == %s\n", message);//KILL ME
         sendSocketMSG(ci.socket, message, 2);
         found = 1;
       }//if
@@ -191,7 +178,6 @@ void broadcast(char * data, Info * info_client, int exit){
   message = (char*)malloc(sizeof(char) * (strlen(data) + strlen(info_client->cd.userName) + 5));
   sprintf(message, SEND_MSG, info_client->cd.userName, data);
 
-  //semafor
   if (exit) {
     if (!LLISTABID_esBuida(info_client->connections)) {
       //enviem el misatge a tots els usuaris conectats
@@ -200,7 +186,6 @@ void broadcast(char * data, Info * info_client, int exit){
       do{
         ci = LLISTABID_consulta(info_client->connections);
 
-        printf("sending exit to socket %d\n", ci.socket);//KILL ME
         sendSocketMSG(ci.socket, message, 6);
 
         LLISTABID_avanca(&(info_client->connections));
@@ -219,7 +204,6 @@ void broadcast(char * data, Info * info_client, int exit){
       do{
         ci = LLISTABID_consulta(info_client->connections);
 
-        printf("sending broadcast to socket %d\n", ci.socket);//KILL ME
         sendSocketMSG(ci.socket, message, 3);
 
         LLISTABID_avanca(&(info_client->connections));
@@ -229,7 +213,6 @@ void broadcast(char * data, Info * info_client, int exit){
   }//else
 
   free(message);
-  //fi_ssemafor
 }//func
 
 void showAudios(char* userName, Info * info_client){
@@ -266,7 +249,6 @@ void downloadAudios(char * user, char * audio_file, Info * info_client) {
   } //if
   else{
 
-    printf("socket == %d audio_file == %s\n", socket, audio_file);
     sendSocketMSG(socket, audio_file, 5);
     getAudioFile(audio_file, info_client->cd.audioDirectory, socket, user);
   } //else
