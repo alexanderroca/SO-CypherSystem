@@ -108,7 +108,7 @@ int serverClient(configurationData cd){
 void userAsClient(){
 
   printf("in user as client\n");//KILL ME
-  user_input = (char*)malloc(sizeof(char));
+  //user_input = (char*)malloc(sizeof(char));
   buffer = (char*)malloc(sizeof(char) * (strlen(info_client.cd.userName) + 5));
   //SEM_constructor_with_name(&sem_clientServer, ftok("tcpServer.c", atoi("clientServer")));
 
@@ -123,6 +123,7 @@ void userAsClient(){
 
     if (strlen(user_input)) {
       *end = checkCommand(user_input, &info_client);
+      free(user_input);
     }else{
 
       write(1, ERR_UNKNOWNCMD, strlen(ERR_UNKNOWNCMD));

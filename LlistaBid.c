@@ -137,6 +137,7 @@ void LLISTABID_inserir (LlistaBid* l, connectionInfo ci){
 		l -> pdi -> ant = aux;
 		aux -> ant -> seg = aux;
 		l -> pdi = aux;
+
   } //else
 }
 

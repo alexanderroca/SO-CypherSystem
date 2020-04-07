@@ -124,8 +124,6 @@ void receiveCD(int sockfd, connectionInfo * ci){
   int port;
   int type = 8;
 
-  buffer = malloc(sizeof(char));
-
   ci->socket = sockfd;
   receiveSocketMSG(sockfd, &type, &(ci->userName));
   receiveSocketMSG(sockfd, &type, &(ci->audioDirectory));

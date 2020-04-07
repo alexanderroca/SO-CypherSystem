@@ -421,6 +421,7 @@ int sendSocketMSG(int sockfd, char * data, int type){
 
 			sprintf(message, PROTOCOL_MESSAGE, MT_CONFIGDATA, H_CONFIGDATA, c_length, data);
 			write(sockfd, message, strlen(message));
+
 			free(message);
 			break;
 		case 1:
@@ -431,6 +432,8 @@ int sendSocketMSG(int sockfd, char * data, int type){
 
 			sprintf(message, PROTOCOL_MESSAGE, MT_CONNECTION, H_TRNAME, c_length, data);
 			write(sockfd, message, strlen(message));
+
+			free(message);
 			break;
 		case 2:
 			//SEND_MSG
@@ -440,6 +443,7 @@ int sendSocketMSG(int sockfd, char * data, int type){
 
 			sprintf(message, PROTOCOL_MESSAGE, MT_SAY, H_MSG, c_length, data);
 			write(sockfd, message, strlen(message));
+
 			free(message);
 			break;
 		case 3:
@@ -450,6 +454,7 @@ int sendSocketMSG(int sockfd, char * data, int type){
 
 			sprintf(message, PROTOCOL_MESSAGE, MT_BROADCAST, H_BROAD, c_length, data);
 			write(sockfd, message, strlen(message));
+
 			free(message);
 			break;
 		case 4:
@@ -481,8 +486,8 @@ int sendSocketMSG(int sockfd, char * data, int type){
 
 			sprintf(message, PROTOCOL_MESSAGE, MT_DOWNAUDIO, H_AUDIOREQ, c_length, data);
 			write(sockfd, message, strlen(message));
-			free(message);
 
+			free(message);
 			break;
 
 		case 6:
@@ -493,8 +498,8 @@ int sendSocketMSG(int sockfd, char * data, int type){
 
 			sprintf(message, PROTOCOL_MESSAGE, MT_EXIT, H_EXIT, c_length, data);
 			write(sockfd, message, strlen(message));
-			free(message);
 
+			free(message);
 			break;
 
 		default:
