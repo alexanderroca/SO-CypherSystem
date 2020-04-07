@@ -20,13 +20,8 @@ void sig_handler() {
   printf("passa el exitserver\n");
   sem_post(&mutexExclusioUsersList);
 
-  if(buffer != NULL){
-    free(buffer);
-  }
-
-  if (user_input != NULL) {
-    free(user_input);
-  }
+  free(buffer);
+  free(user_input);
 
   deleteInfo();
   sem_destroy(&mutexExclusioUsersList);
