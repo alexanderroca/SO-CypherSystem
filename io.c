@@ -957,6 +957,8 @@ void stringToUpper(char * string) {
 ******************************************************************************/
 void checkCMDConnect(char **ptr, int c, Info * info_client) {
 	char buffer[100] = " ";//KILL ME
+	int port;
+	//uint16_t var2 = (uint16_t) ~((unsigned int) var1);
 	if (c != 2) {
 
 		if (c < 2) {
@@ -968,14 +970,23 @@ void checkCMDConnect(char **ptr, int c, Info * info_client) {
 		}
 	}else{
 
+		port = atoi(ptr[1]);
 		if (atoi(ptr[1]) != 0) {
-			sprintf(buffer, "connecting to %d\n", atoi(ptr[1]));//KILL ME
-			write(1, buffer, strlen(buffer));//KILL ME
-			if(alreadyConnected(info_client, ptr[1]))
-				connectToPort(atoi(ptr[1]), "127.0.0.1", info_client);
-			else
-				write(1, ALREADY_CONNECTED, strlen(ALREADY_CONNECTED));
-		}else{
+			printf("YOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO\n");
+			printf("atoi: %d, cd: %d, comparision: %d\n", atoi(ptr[1]), info_client->cd.port, port == info_client->cd.socket);
+			if(port == info_client->cd.socket){
+				write(1, ERR_PORT_SELF, strlen(ERR_PORT_SELF));
+			}	//if
+			else{
+				sprintf(buffer, "connecting to %d\n", atoi(ptr[1]));//KILL ME
+				write(1, buffer, strlen(buffer));//KILL ME
+				if(alreadyConnected(info_client, ptr[1]))
+					connectToPort(atoi(ptr[1]), "127.0.0.1", info_client);
+				else
+					write(1, ALREADY_CONNECTED, strlen(ALREADY_CONNECTED));
+			}	//else
+		}	//if
+		else{
 			write(1, ERR_PORT, strlen(ERR_PORT));
 		}//else
 	}//else
@@ -1537,8 +1548,9 @@ void showPorts(int ports[], int num_ports){
 
 	if(num_ports > 0)
 	  for(i = 0; i < num_ports; i++){
-			sprintf(buffer, "%d\n", ports[i]);
+			sprintf(buffer, "%d", ports[i]);
 	    write(1, buffer, sizeof(int));
+			write(1, "\n", strlen("\n"));
 		}	//for
 
 	write(1, "\n", strlen("\n"));

@@ -127,7 +127,9 @@ void userAsClient(){
 
     if (strlen(user_input)) {
       *end = checkCommand(user_input, &info_client);
-    }else{
+      free(user_input);
+    } //if
+    else{
 
       write(1, ERR_UNKNOWNCMD, strlen(ERR_UNKNOWNCMD));
     }//else
@@ -136,6 +138,8 @@ void userAsClient(){
     //SEM_signal(&sem_clientServer);
 
   }//while
+
+
 }//func
 
 //Servidor dedicat per client connectat al serverClient
@@ -247,6 +251,7 @@ void *userAsServer(void *arg){
   fcntl(sockfd, F_SETFL, O_NONBLOCK); /* Change the socket into non-blocking state	*/
 
   while(!(*end)){
+
     struct sockaddr_in c_addr;
     socklen_t c_len = sizeof(c_addr);
 
@@ -268,8 +273,8 @@ void *userAsServer(void *arg){
           printf("user_to connect: %s\n", user_connected);
           receiveSocketMSG(newsock, &connect, &user_connected);
           printf("user_to connect: %s\n", user_connected);
-          
           if(user_connected != NULL){
+            printf("Inside user_conencted\n");
 
             sem_wait(&mutexExclusioUsersList);
             ci.socket = newsock;
