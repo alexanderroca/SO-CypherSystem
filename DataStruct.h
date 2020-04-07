@@ -37,6 +37,7 @@
 #define ERR_2MANYARGS "Error, too many arguments or wrong argument order provided to execute command.\n"
 #define ERR_PORT "Error, invalid port value.\n"
 #define ERR_PORT_UNAVAILABLE "Error, unavailable port value\n"
+#define ERR_PORT_SELF "Error, can't connect to self\n"
 #define ERR_MESSAGE "Error, no message found (specified by using \" \")\n"
 #define ERR_ORDER "Error, wrong argment order.\n"
 #define ERR_NOAUDIO "Error, no audio file extension found in audio file parameter. Audio file must not contain spaces!\n"
@@ -149,7 +150,7 @@ typedef struct{
 	char * userName;
 	char * audioDirectory;
 	char * ip;
-	uint16_t port;
+	int port;
 }connectionInfo;
 
 typedef struct _Node{
