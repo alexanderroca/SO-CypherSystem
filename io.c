@@ -1009,9 +1009,7 @@ void checkCMDConnect(char **ptr, int c, Info * info_client) {
 
 		port = atoi(ptr[1]);
 		if (atoi(ptr[1]) != 0) {
-			printf("YOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO\n");
-			printf("atoi: %d, cd: %d, comparision: %d\n", atoi(ptr[1]), info_client->cd.port, port == info_client->cd.socket);
-			if(port == info_client->cd.socket){
+			if(port == info_client->cd.port){
 				write(1, ERR_PORT_SELF, strlen(ERR_PORT_SELF));
 			}	//if
 			else{
