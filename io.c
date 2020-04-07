@@ -976,6 +976,21 @@ void checkCMDConnect(char **ptr, int c, Info * info_client) {
 			else
 				write(1, ALREADY_CONNECTED, strlen(ALREADY_CONNECTED));
 		}else{
+=======
+			if(port == info_client->cd.port){
+				write(1, ERR_PORT_SELF, strlen(ERR_PORT_SELF));
+			}	//if
+			else{
+				sprintf(buffer, "connecting to %d\n", atoi(ptr[1]));//KILL ME
+				write(1, buffer, strlen(buffer));//KILL ME
+				if(alreadyConnected(info_client, ptr[1]))
+					connectToPort(atoi(ptr[1]), "127.0.0.1", info_client);
+				else
+					write(1, ALREADY_CONNECTED, strlen(ALREADY_CONNECTED));
+			}	//else
+		}	//if
+		else{
+>>>>>>> 63c5f1fbf5eb1a8679285d1692dcfca991be524f
 			write(1, ERR_PORT, strlen(ERR_PORT));
 		}//else
 	}//else
