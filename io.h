@@ -31,7 +31,7 @@ int sendSocketMSG(int sockfd, char * data, int type);
 
 int sendServerCheck(int sockfd, int type, char * data, int length, int ok);
 
-void receiveServerCheck(int sockfd, char * data);
+int receiveServerCheck(int sockfd, char ** data);
 
 void sendEOFProtocol(int sockfd);
 

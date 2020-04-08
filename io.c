@@ -783,50 +783,55 @@ int sendServerCheck(int sockfd, int type, char * data, int length, int ok){
 * @param: data string of data that has been received
 *
 ******************************************************************************/
-void receiveServerCheck(int sockfd, char * data){
+int receiveServerCheck(int sockfd, char ** data){
 	char * buffer, * aux;
-	int c, type, length;
-	char **ptr; //ptr[0] = Type ptr[1] = header ptr[2] = length
+	char check;
+	int c, length, ok, num_camps;
+	char **ptr; //ptr[0] = header ptr[1] = length ptr[2] = data
 
-	buffer = readUntil(sockfd, '\n');
-	printf("serverCheck received-%s\n", buffer);//KILL ME
-	ptr = (char**)malloc(sizeof(char*));
+	printf("in server check\n");//KILL ME
 
-	for (c = 0, aux = strtok (buffer, " ");
-					aux != NULL; aux = strtok (NULL, " "), c++){
+	int flags = fcntl(sockfd, F_GETFL, 0);
+	fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
 
-		ptr = realloc (ptr, sizeof (char *) * (c + 2));
-		ptr[c] = aux;
-	}//for
+	ok = read(sockfd, &check, sizeof(char));
 
-	type = atoi(ptr[0]);
-	length = atoi(ptr[2]);
+	printf("ok == %d\n", ok);//KILL ME
 
-	switch (type) {
-		case 1:
-			if (strcmp(ptr[1], H_CONOK) == 0) {
-				data = realloc(data, sizeof(char) * (length + 5));
+	if (ok > 0){
+		buffer = readUntil(sockfd, '\n');
+		printf("serverCheck received-%s\n", buffer);//KILL ME
+		ptr = (char**)malloc(sizeof(char*));
 
-			}else{
-				data = realloc(data, strlen(ptr[1]));
-				strcpy(data, ptr[2]);
+		for (c = 0, aux = strtok (buffer, " ");
+						aux != NULL; aux = strtok (NULL, " "), c++){
 
-			}
+			ptr = realloc (ptr, sizeof (char *) * (c + 2));
+			ptr[c] = aux;
+		}//for
 
-		break;
-		case 2:
-		case 3:
-		case 6:
-			data = realloc(data, sizeof(char) * strlen(ptr[1]));
-			strcpy(data, ptr[2]);
+		printf("post for chungo\n");//KILL ME
+		printf("ptr[0] == %s, ptr[1] == %s, ptr[2] == %s\n", ptr[0], ptr[1], ptr[2]);//KILL ME
 
-		break;
-		default:
-			write(1, "Error Default criteria met in receiveServerCheck\n",
-				strlen("Error Default criteria met in receiveServerCheck\n"));
+		length = atoi(ptr[1]);
+		num_camps = c;
 
-		break;
-	}//switch
+		printf("num camps == %d\n", num_camps);//KILL ME
+
+		*data = realloc(*data, sizeof(char) * (length + 1));
+		//guardem totes la info rebuda en un sol string on nomes hi ha dades utils
+		strcpy(*data, ptr[2]);
+
+		printf("post realloc de data\n");//KILL ME
+
+		for (c = 3; c < num_camps; c++) {
+			sprintf(*data, "%s %s", *data, ptr[c]);
+
+		}//for
+	}//if
+
+	printf("receive server check end\n");//KILL ME
+	return ok;
 }//func
 
 /******************************************************************************
@@ -870,9 +875,8 @@ int  checkCommand(char * user_input, Info * info_client) {
 	printf("Inside checkCommand\n");
 
 	char *aux, **ptr;
-	int i, c, exit;
+	int c, exit;
 
-	i = 0;
 	c = 0;
 	exit = 0;
 
@@ -924,16 +928,6 @@ int  checkCommand(char * user_input, Info * info_client) {
 		}//else say
 	}//else connect
 
-	/*printf("preforfree\n");//KILL ME
-	printf("c == %d\n", c);//KILL ME
-	for (i = 0; i <= c; i++) {
-		free(ptr[i]);
-	}
-
-	printf("prefree ptr\n");
-	free(ptr);
-	free(aux);
-*/
 	printf("exiting checkCommand\n");//KILL ME
 	return exit;
 }//func

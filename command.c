@@ -108,6 +108,7 @@ void connectToPort(uint16_t portToConnect, char* ipToConnect, Info * info_client
 
           LLISTABID_vesFinal(&(info_client->connections));
           receiveCD(sockfd, &ci);
+          printf("CD received\n");//KILL ME
           LLISTABID_inserir(&(info_client->connections), ci);
 
           free(ci.userName);

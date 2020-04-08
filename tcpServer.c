@@ -210,12 +210,11 @@ void *userAsServer(void *arg){
 
   pthread_t t_dedicatedServer;
   sem_init(&mutexExclusioUsersList, 0, 1);
-  int ret_w;
+  int ret_w, ok;
   Info * info_server = (Info *) arg;
   connectionInfo ci;
   connectionInfo DS_ci;
   connectionInfo ci_test;//KILL ME
-  int connect = 1;
   char *user_connected;
 
   ci.userName = (char*)malloc(sizeof(char));
@@ -255,23 +254,24 @@ void *userAsServer(void *arg){
       //sem_wait(&mutexExclusioUserConnect);
       //ts->clients.sockets[ts->clients.num_sockets].socket = newsock;
       ret_w = write(newsock, H_CONOK, strlen(H_CONOK));
-      printf("ret_w == %d\n", ret_w);
+      printf("ret_w == %d\n", ret_w);//KILL ME
 
       if (ret_w >= 0) {
 
           //signal(SIGALRM, sigalrm_handler);
           //alarm(1);
           //while(!stop);
-          printf("user_to connect: %s\n", user_connected);
-          receiveSocketMSG(newsock, &connect, &user_connected);
-          printf("user_to connect: %s\n", user_connected);
+          printf("user_to connect: %s\n", user_connected);//KILL ME
+          ok = receiveServerCheck(newsock, &user_connected);
+          //receiveSocketMSG(newsock, &connect, &user_connected);
+          printf("post receive socket msg\n");//KILL ME
 
-          if(user_connected != NULL){
+          if(ok > 0){
 
             sem_wait(&mutexExclusioUsersList);
             ci.socket = newsock;
-            printf("ci.socket == %d\n", ci.socket);
-            printf("pre access list\n");
+            printf("ci.socket == %d\n", ci.socket);//KILL ME
+            printf("pre access list\n");//KILL ME
             LLISTABID_vesFinal(&(info_server->connections));
             LLISTABID_inserir(&(info_server->connections), ci);
             ci_test = LLISTABID_consulta(info_server->connections);//KILL ME
@@ -284,17 +284,20 @@ void *userAsServer(void *arg){
             sem_post(&mutexExclusioUsersList);
             pthread_create(&t_dedicatedServer, NULL, dedicatedServer, &DS_ci); //Creacio del thread del nou client, cal passar ts al thread
           } //if
+          printf("post if != NULL\n");//KIll ME
         //Fins aqui
         //sem_post(&mutexExclusioUserConnect); //Falta destruir el semafor quan es fa exit o Ctrl-C
       }//if
+      printf("post if ret_w\n");//KILL ME
     } //if
   }//While(1)
+  printf("post while end\n");
 
   free(ci.userName);
   free(ci.audioDirectory);
   free(ci.ip);
 
-  printf("USER SERVER END\n");
+  printf("USER SERVER END\n");//KILL ME
   return (void *) 0;
 }
 
