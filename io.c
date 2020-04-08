@@ -287,7 +287,6 @@ int readAudioFile(char* path, int socket){
 		if(i < st.st_size){
 			bzero(buff, 255);
 			i = st.st_size - (trunk_st_size * 255);
-			printf("I = %d\n", i);
 			num_bytes = read(fd, buff, i);
 			sendServerCheck(socket, 5, buff, i, 1);
 		}	//if
@@ -567,7 +566,6 @@ int receiveSocketMSG(int sockfd, int * type, char ** data){
 
 	}else{
 		buffer = readUntil(sockfd, '\n');
-		printf("message received-%s\n", buffer);//KILL ME
 		ptr = (char**)malloc(sizeof(char*));
 
 		//Didvidim la info sparada per espais en strings diferents
@@ -582,7 +580,6 @@ int receiveSocketMSG(int sockfd, int * type, char ** data){
 		type_int = atoi(ptr[0]);
 		*type = type_int;
 		length = atoi(ptr[2]);
-		printf("length == %d\n", length);//KILL ME
 
 	}//else
 
@@ -789,18 +786,13 @@ int receiveServerCheck(int sockfd, char ** data){
 	int c, length, ok, num_camps;
 	char **ptr; //ptr[0] = header ptr[1] = length ptr[2] = data
 
-	printf("in server check\n");//KILL ME
-
 	int flags = fcntl(sockfd, F_GETFL, 0);
 	fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
 
 	ok = read(sockfd, &check, sizeof(char));
 
-	printf("ok == %d\n", ok);//KILL ME
-
 	if (ok > 0){
 		buffer = readUntil(sockfd, '\n');
-		printf("serverCheck received-%s\n", buffer);//KILL ME
 		ptr = (char**)malloc(sizeof(char*));
 
 		for (c = 0, aux = strtok (buffer, " ");
@@ -810,19 +802,12 @@ int receiveServerCheck(int sockfd, char ** data){
 			ptr[c] = aux;
 		}//for
 
-		printf("post for chungo\n");//KILL ME
-		printf("ptr[0] == %s, ptr[1] == %s, ptr[2] == %s\n", ptr[0], ptr[1], ptr[2]);//KILL ME
-
 		length = atoi(ptr[1]);
 		num_camps = c;
-
-		printf("num camps == %d\n", num_camps);//KILL ME
 
 		*data = realloc(*data, sizeof(char) * (length + 1));
 		//guardem totes la info rebuda en un sol string on nomes hi ha dades utils
 		strcpy(*data, ptr[2]);
-
-		printf("post realloc de data\n");//KILL ME
 
 		for (c = 3; c < num_camps; c++) {
 			sprintf(*data, "%s %s", *data, ptr[c]);
@@ -830,7 +815,6 @@ int receiveServerCheck(int sockfd, char ** data){
 		}//for
 	}//if
 
-	printf("receive server check end\n");//KILL ME
 	return ok;
 }//func
 
@@ -872,8 +856,6 @@ int checkEOF(int fd) {
 ******************************************************************************/
 int  checkCommand(char * user_input, Info * info_client) {
 
-	printf("Inside checkCommand\n");
-
 	char *aux, **ptr;
 	int c, exit;
 
@@ -901,7 +883,6 @@ int  checkCommand(char * user_input, Info * info_client) {
 		if (strcasecmp(ptr[0], CMD_SAY) == 0) {
 
 			checkCMDSay(ptr, c, info_client);
-			printf("post checkCMDSay\n");
 		}else{//if say
 			if (strcasecmp(ptr[0], CMD_BROADCAST) == 0) {
 
@@ -928,7 +909,6 @@ int  checkCommand(char * user_input, Info * info_client) {
 		}//else say
 	}//else connect
 
-	printf("exiting checkCommand\n");//KILL ME
 	return exit;
 }//func
 
@@ -1086,8 +1066,6 @@ void checkCMDSay(char **ptr, int c, Info * info_client){
 		}//else
 	}//else
 
-	printf("strlen message == %ld\n", strlen(message));
-
 	if (strlen(message) > 80) {
 		write(1, "Please send shorter messages.\n",
 				strlen("Please send shorter messages.\n"));
@@ -1103,7 +1081,6 @@ void checkCMDSay(char **ptr, int c, Info * info_client){
 
 	free(message);
 	free(user);
-	printf("post say\n");//KILL ME
 }//func
 
 /******************************************************************************
@@ -1256,8 +1233,6 @@ void checkCMDDownload(char **ptr, int c, Info * info_client) {
 ******************************************************************************/
 int checkCMDExit(int c, Info * info_client){
 	int exit = 0;
-
-	printf("in EXIT\n");//KILL ME
 
 	if (c > 1) {
 
@@ -1428,7 +1403,6 @@ void replyDirectoryUserConnected(char* directory_name, int socket){
 			else
 				createAudioListMSG(buffer);
 
-			printf("num_bytes = %d - buffer: %s\n", num_bytes, buffer);//KILL ME
 			sendSocketMSG(socket, buffer, 4);
 
       close(fd[READ_PIPE]);
@@ -1471,9 +1445,7 @@ void readDirectoryUserConnected(int socket){
 	buffer = (char*)malloc(sizeof(char));
 	aux = malloc(sizeof(char));
 
-	printf("Pre recieve socketMSG\n");
 	receiveSocketMSG(socket, &type, &(buffer));
-	printf("buffer audio list == %s\n", buffer);//KILL ME
 
 	if(strcmp(buffer, H_AUDIOKO) == 0){
 		write(1, AUDIO_NO_LIST_TITLE, strlen(AUDIO_NO_LIST_TITLE));
