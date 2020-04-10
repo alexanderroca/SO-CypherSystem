@@ -261,7 +261,6 @@ int readAudioFile(char* path, int socket){
 
 	if(fd < 0){
 		//send KO
-		//write(socket, H_FILEKO, strlen(H_FILEKO));
 		sendServerCheck(socket, 5, " ", 0, 0);
 		status = 1;
 	}	//if
@@ -935,7 +934,6 @@ void stringToUpper(char * string) {
 * @param: c integer that store the number of word in the ptr array.
 ******************************************************************************/
 void checkCMDConnect(char **ptr, int c, Info * info_client) {
-	char buffer[100] = " ";//KILL ME
 	int port = atoi(ptr[1]);
 	if (c != 2) {
 
@@ -954,8 +952,6 @@ void checkCMDConnect(char **ptr, int c, Info * info_client) {
 				write(1, ERR_PORT_SELF, strlen(ERR_PORT_SELF));
 			}	//if
 			else{
-				sprintf(buffer, "connecting to %d\n", atoi(ptr[1]));//KILL ME
-				write(1, buffer, strlen(buffer));//KILL ME
 				if(alreadyConnected(info_client, ptr[1]))
 					connectToPort(atoi(ptr[1]), "127.0.0.1", info_client);
 				else
@@ -985,7 +981,7 @@ int alreadyConnected(Info * info_client, char * port){
 	 }	//while
 
 	 return status;
-}
+}//func
 
 /******************************************************************************
 * <Description>
@@ -1005,7 +1001,6 @@ void checkCMDSay(char **ptr, int c, Info * info_client){
 	char *user, *message;
 	int i = 0;
 	int ok = 1;
-	char buffer_aux[100] = " ";//KILL ME
 
 	user = (char*)malloc(sizeof(char));
 	message = (char*)malloc(sizeof(char));
@@ -1073,9 +1068,6 @@ void checkCMDSay(char **ptr, int c, Info * info_client){
 	}//if
 
 	if (ok) {
-
-		sprintf(buffer_aux, "sending %s to user %s\n", message, user);//KILL ME
-		write(1, buffer_aux, strlen(buffer_aux));//KILL ME
 		say(user, message, info_client);
 	}//if
 
@@ -1165,7 +1157,6 @@ void checkCMDDownload(char **ptr, int c, Info * info_client) {
 
 	char *user, *audio_file;
 	int i, ok;
-	char buffer_aux[100] = " ";//KILL ME
 
 	ok = 1;
 	user = (char*)malloc(sizeof(char));
@@ -1208,8 +1199,6 @@ void checkCMDDownload(char **ptr, int c, Info * info_client) {
 	}//else
 
 	if(ok){
-		sprintf(buffer_aux, "downloading audio file %s from user %s\n", audio_file, user);//KILL ME
-		write(1, buffer_aux, strlen(buffer_aux));//KILL ME
 		downloadAudios(user, audio_file, info_client);
 	}//if
 

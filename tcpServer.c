@@ -56,10 +56,8 @@ int serverClient(configurationData cd){
   int estat = 0;
   int aux = 0;
   end = &aux;
+
   //ThreadServer ts;
-
-  //clients = initializationClients();
-
   write(1, WELCOME, strlen(WELCOME));
 
   copyCD(&info_client, &cd);
@@ -73,9 +71,6 @@ int serverClient(configurationData cd){
 
   info_client.connections = LLISTABID_crea();
   info_server.connections = LLISTABID_crea();
-
-  //ts.clients = clients;
-  //ts.cd = cd;
 
   sem_init(&mutexExclusioUsersList, 0, 1);
 
@@ -102,14 +97,10 @@ int serverClient(configurationData cd){
 
 //Usuari com a client
 void userAsClient(){
-
-  //user_input = (char*)malloc(sizeof(char));
   buffer = (char*)malloc(sizeof(char) * (strlen(info_client.cd.userName) + 5));
-  //SEM_constructor_with_name(&sem_clientServer, ftok("tcpServer.c", atoi("clientServer")));
 
   while (!(*end)) {
-
-    //SEM_wait(&sem_clientServer);
+    write(1, "\n", strlen("\n"));
     sprintf(buffer, "$%s: ", info_client.cd.userName);
     write(1, buffer, strlen(buffer));
 
@@ -122,7 +113,6 @@ void userAsClient(){
 
       write(1, ERR_UNKNOWNCMD, strlen(ERR_UNKNOWNCMD));
     }//else
-
   }//while
 }//func
 
@@ -155,25 +145,25 @@ int DSMsgHandler(char * message, int type, char * client_name, connectionInfo * 
   int connected = 1;//in  message exit turn this to false
   char * path;
 
-  path = (char*)malloc(sizeof(char));
-
 	switch (type) {
 
 		case 2://MSG
 		case 3://BROADCAST
+      write(1, "\r", strlen("\r"));
 			write(1, message, strlen(message));
 			write(1, "\n", strlen("\n"));
 			write(1, client_name, strlen(client_name));
 		break;
 		case 4://SHOW_AUDIOS
 			replyDirectoryUserConnected(ci->audioDirectory, ci->socket);
-      write(1, client_name, strlen(client_name));
+      //write(1, client_name, strlen(client_name));
 		break;
 		case 5://DOWNLOAD_AUDIOS
-      path = realloc(path, sizeof(char) * (strlen(message) + strlen(ci->audioDirectory) + 5));
+      path = (char*)malloc(sizeof(char) * (strlen(message) + strlen(ci->audioDirectory) + 5));
       sprintf(path, "%s/%s", ci->audioDirectory, message);
       readAudioFile(path, ci->socket);
-      write(1, client_name, strlen(client_name));
+      //write(1, client_name, strlen(client_name));
+      free(path);
 		break;
     case 6:
       connected = 0;
@@ -184,7 +174,6 @@ int DSMsgHandler(char * message, int type, char * client_name, connectionInfo * 
     break;
 	}//switch
 
-  free(path);
   return connected;
 }//func
 
@@ -197,7 +186,6 @@ void *userAsServer(void *arg){
   Info * info_server = (Info *) arg;
   connectionInfo ci;
   connectionInfo DS_ci;
-  connectionInfo ci_test;//KILL ME
   char *user_connected;
 
   ci.userName = (char*)malloc(sizeof(char));
@@ -233,9 +221,6 @@ void *userAsServer(void *arg){
     //i pel mateix motiu
     int newsock = accept(sockfd, (void *) &c_addr, &c_len);
     if(newsock > 0){
-      //Posar semafor
-      //sem_wait(&mutexExclusioUserConnect);
-      //ts->clients.sockets[ts->clients.num_sockets].socket = newsock;
       ret_w = write(newsock, H_CONOK, strlen(H_CONOK));
 
       if (ret_w >= 0) {
@@ -255,8 +240,6 @@ void *userAsServer(void *arg){
             sem_post(&mutexExclusioUsersList);
             pthread_create(&t_dedicatedServer, NULL, dedicatedServer, &DS_ci); //Creacio del thread del nou client, cal passar ts al thread
           } //if
-        //Fins aqui
-        //sem_post(&mutexExclusioUserConnect); //Falta destruir el semafor quan es fa exit o Ctrl-C
       }//if
     } //if
   }//While(1)
@@ -283,5 +266,4 @@ void sendConfirmationReply(int sockfd, configurationData cd){
   //envia port
   itoa((int)cd.port, buffer);
   sendSocketMSG(sockfd, buffer, 0);
-  //readAudioFile("Audio/Russian Red Army Choir.mp3", sockfd);
 }

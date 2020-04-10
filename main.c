@@ -13,7 +13,6 @@
 
 int main(int argc, char* argv[]) {
     configurationData cd;
-    //char buffer[255];
 
     if (argc == 2) {
 
