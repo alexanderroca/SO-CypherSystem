@@ -59,9 +59,12 @@
 #define MD5SUM "md5sum"
 #define MD5SUM_FAILED "md5sum command error\n"
 #define MD5SUM_COMMAND "md5sum %s"
+#define CONNECTED " connected: "
 #define AUDIO_LIST_TITLE "\n------Audios Found------\n"
 #define AUDIO_NO_LIST_TITLE "\n------Audios Not Found------\n"
+#define DISCONNECTING "\nDisconnecting Trinity...\n"
 #define ALREADY_CONNECTED "Already connected to this port\n"
+
 
 #define MT_CONNECTION 0x01
 

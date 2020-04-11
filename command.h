@@ -13,7 +13,7 @@
 int initializationPipes(int fd[2]);
 void showPorts(int* ports, int num_ports);
 void showConnections(uint16_t port);
-void connectToPort(uint16_t port, char* ipToConnect, Info * info_client);
+void connectToPort(uint16_t port, char* ipToConnect, Info * info_client, char* port_string);
 void say(char * user, char * data, Info * info_client);
 void broadcast(char * data, Info * info_client, int exit);
 void receiveCD(int sockfd, connectionInfo * ci);

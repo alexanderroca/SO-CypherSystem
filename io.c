@@ -29,7 +29,7 @@ void itoa(int n, char* s){
 /******************************************************************************
 * <Description>
 * reverse gets all the characters in a string and reverses the order in wich
-* they are written (the firs character will be the last, the second one wiil
+* they are written (the firs character will be the last, the second one wiil+
 * become second to last etc.).
 *
 * @author: Victor Blasco <victor.blasco@students.salle.url.edu>
@@ -337,16 +337,17 @@ int getAudioFile(char* fileName, char* directoryUserConnected, int socket, char*
 			//escrivim primer batch de bytes
 			write(fd, response, num_bytes);
 			free(response);
+			write(1, "\nDownloading File, Please wait...\n",
+				strlen("\nDownloading File, Please wait...\n"));
 
 			while(1){
 				num_bytes = receiveSocketMSG(socket, &type, &(response));
 				if(num_bytes == 0){ //if(strcmp(buffer, H_EOF) == 0)
 						break;
-
 				}
-
 				write(fd, response, num_bytes);
 				free(response);
+
 			}	//while
 
 			md5sum_file = (char*)malloc(sizeof(char) * 36);
@@ -658,7 +659,6 @@ int receiveSocketMSG(int sockfd, int * type, char ** data){
 					}//else AUDIO_RES
 				}//else AUDIO_REQ
 			}//else AUDIO_KO
-
 			break;
 		default:
 		write(1, "Error Default criteria met in receiveSocketMSG\n",
@@ -790,6 +790,12 @@ int receiveServerCheck(int sockfd, char ** data){
 
 	ok = read(sockfd, &check, sizeof(char));
 
+	if (ok < 1) {
+		sleep(2);
+	}
+
+	ok = read(sockfd, &check, sizeof(char));
+
 	if (ok > 0){
 		buffer = readUntil(sockfd, '\n');
 		ptr = (char**)malloc(sizeof(char*));
@@ -797,14 +803,14 @@ int receiveServerCheck(int sockfd, char ** data){
 		for (c = 0, aux = strtok (buffer, " ");
 						aux != NULL; aux = strtok (NULL, " "), c++){
 
-			ptr = realloc (ptr, sizeof (char *) * (c + 2));
+			ptr = realloc (ptr, (sizeof(char *) * (c + 2)) + 2);
 			ptr[c] = aux;
 		}//for
 
 		length = atoi(ptr[1]);
 		num_camps = c;
 
-		*data = realloc(*data, sizeof(char) * (length + 1));
+		*data = realloc(*data, (sizeof(char) * (length + 1)) + 1);
 		//guardem totes la info rebuda en un sol string on nomes hi ha dades utils
 		strcpy(*data, ptr[2]);
 
@@ -952,10 +958,11 @@ void checkCMDConnect(char **ptr, int c, Info * info_client) {
 				write(1, ERR_PORT_SELF, strlen(ERR_PORT_SELF));
 			}	//if
 			else{
-				if(alreadyConnected(info_client, ptr[1]))
-					connectToPort(atoi(ptr[1]), "127.0.0.1", info_client);
-				else
+				if(alreadyConnected(info_client, ptr[1])){
+					connectToPort(atoi(ptr[1]), "127.0.0.1", info_client, ptr[1]);
+				}else{
 					write(1, ALREADY_CONNECTED, strlen(ALREADY_CONNECTED));
+				}//else
 			}	//else
 		}	//if
 		else{
@@ -1229,6 +1236,7 @@ int checkCMDExit(int c, Info * info_client){
 	}else{
 		broadcast(" ", info_client, 1);
 		exit = 1;
+		write(1, DISCONNECTING, strlen(DISCONNECTING));
 	}//else
 
 	return exit;

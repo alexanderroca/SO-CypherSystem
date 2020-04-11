@@ -60,7 +60,7 @@ void showConnections(uint16_t port){
   } //else
 }//func
 
-void connectToPort(uint16_t portToConnect, char* ipToConnect, Info * info_client) {
+void connectToPort(uint16_t portToConnect, char* ipToConnect, Info * info_client, char* port_string) {
 
   connectionInfo ci;
 
@@ -109,6 +109,11 @@ void connectToPort(uint16_t portToConnect, char* ipToConnect, Info * info_client
           LLISTABID_vesFinal(&(info_client->connections));
           receiveCD(sockfd, &ci);
           LLISTABID_inserir(&(info_client->connections), ci);
+          //print connected user
+          write(1, port_string, strlen(port_string));
+          write(1, CONNECTED, strlen(CONNECTED));
+          write(1, ci.userName, strlen(ci.userName));
+          write(1, "\n", strlen("\n"));
 
           free(ci.userName);
           free(ci.audioDirectory);
@@ -236,13 +241,13 @@ void downloadAudios(char * user, char * audio_file, Info * info_client) {
   int socket;
   char* buffer;
 
-  buffer = malloc(sizeof(char));
   socket = checkUserConnnected(user, info_client->connections);
 
   if(socket == -1){
-    buffer = realloc(buffer, sizeof(char) * (strlen(user) + strlen(USER_NO_CONNECTED) + 5));
+    buffer = (char*)malloc(sizeof(char) * (strlen(user) + strlen(USER_NO_CONNECTED) + 5));
     sprintf(buffer, USER_NO_CONNECTED, user);
     write(1, buffer, strlen(buffer));
+    free(buffer);
 
   } //if
   else{
