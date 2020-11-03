@@ -8,10 +8,8 @@ El procés Trinity es manipularà utilitzant un conjunt comandes esteses del sis
 han de ser case insensitive. Per executar-se tindrà un fitxer de configuració associat que
 contindrà una sèrie de paràmetres importants per la seva execució i funcions.
 
-Per poder intuir una primera execució del sistema la Figura 2 ens mostra un exemple:
-Figura 2. Execució d’un procés McGruder.
-Figura 2. Execució de Trinity.
-montserrat$ Trinity Config.dat
+Per poder intuir una primera execució del sistema es mostra un exemple:
+
 Starting Trinity...
 $Persefone: SHOW CONNECTIONS
 Testing...
